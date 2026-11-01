@@ -2,9 +2,11 @@
   <strong>English</strong> | <a href="README_ko.md">한국어</a>
 </p>
 
+<p align="center">
 ### Screenshots
 
 [View screenshots](docs/screenshots.md)
+</p>
 
 # Better-Skillinfo
 
