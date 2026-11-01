@@ -45,7 +45,7 @@
 
 빌드에는 다음 도구가 필요합니다. 배포된 모드만 설치하는 사용자는 준비할 필요가 없습니다.
 
-- Rust nightly와 `rust-src` — `rust-toolchain.toml`에 지정
+- Rust nightly 및 `rust-src` — 프로젝트의 `rust-toolchain.toml` 파일에 필요한 Rust 개발 환경이 지정되어 있습니다.
 - devkitARM — `DEVKITARM` 또는 `DEVKITPRO` 설정, 또는 `arm-none-eabi-gcc`를 PATH에 등록
 - Forge CLI — 아래 SDK 리비전 사용
 - Python 3 — 선택 사항인 배포 패키징에 사용하며 외부 Python 패키지는 필요 없음

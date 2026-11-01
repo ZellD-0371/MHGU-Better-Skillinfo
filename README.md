@@ -1,5 +1,5 @@
 <p align="center">
-  <strong>English</strong> | <a href="README_ko.md">ÇÑ±¹¾î</a>
+  <strong>English</strong> | <a href="README_ko.md">í•œêµ­ì–´</a>
 </p>
 
 # Better-Skillinfo
@@ -25,7 +25,7 @@ Rather than replacing in-game descriptions, the plugin displays a separate panel
 | --- | --- |
 | Runtime | MHGU Recomp PC version with built-in Forge support |
 | Game data | MHGU Global v1.4.0 |
-| Display languages | English, ÇÑ±¹¾î, ìíÜâåŞ, ??ñéÙş, Ûåô÷ñéÙş, Deutsch, Francais, Italiano, Espanol |
+| Display languages | English, í•œêµ­ì–´, æ—¥æœ¬èª, ç®€ä½“ä¸­æ–‡, ç¹é«”ä¸­æ–‡, Deutsch, FranÃ§ais, Italiano, EspaÃ±ol |
 
 ## Installation
 
@@ -39,16 +39,16 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | Input | Action |
 | --- | --- |
 | Hold L3 + move the right stick left / right | Previous / next page |
-| Ctrl + ¡ç / ¡æ | Previous / next page |
+| Ctrl + â† / â†’ | Previous / next page |
 
 ## Building from source
 
 The following tools are required to build the plugin. They are not needed if you only want to install a prebuilt release.
 
-- **Rust nightly and `rust-src`**: Specified in `rust-toolchain.toml`.
-- **devkitARM**: Set `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH.
-- **Forge CLI**: Use the SDK revision specified below.
-- **Python 3**: Required only for optional release packaging. No third-party Python packages are needed.
+- Rust nightly and `rust-src` â€” The required Rust toolchain and components are specified in `rust-toolchain.toml`.
+- devkitARM â€” Set `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH.
+- Forge CLI â€” Use the SDK revision specified below.
+- Python 3 â€” Required only for optional release packaging. No third-party Python packages are needed.
 
 ```powershell
 cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2a0aa291ffbd3d2f7628c0e2d96d220 cargo-mhgu-forge --locked
