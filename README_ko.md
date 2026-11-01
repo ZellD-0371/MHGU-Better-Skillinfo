@@ -2,6 +2,10 @@
   <a href="README.md">English</a> | <strong>한국어</strong>
 </p>
 
+### 스크린샷
+
+[스크린샷 보기](docs/screenshots.md)
+
 # Better-Skillinfo
 
 **MHGU Recomp에서 장비와 장식주의 스킬 정보를 확인하는 Forge 오버레이 플러그인입니다.**

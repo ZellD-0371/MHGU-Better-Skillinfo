@@ -2,6 +2,10 @@
   <strong>English</strong> | <a href="README_ko.md">한국어</a>
 </p>
 
+### Screenshots
+
+[View screenshots](docs/screenshots.md)
+
 # Better-Skillinfo
 
 **A Forge overlay plugin for MHGU Recomp that displays detailed skill information for equipment and decorations.**
