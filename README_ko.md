@@ -1,4 +1,6 @@
-[English](README.md) | [한국어](README.ko.md)
+<p align="center">
+  <a href="README.md">English</a> | <strong>한국어</strong>
+</p>
 
 # Better-Skillinfo
 
