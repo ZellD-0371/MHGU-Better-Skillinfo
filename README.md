@@ -47,10 +47,6 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | Hold L3 + move the right stick left / right | Previous / next page |
 | Ctrl + ← / → | Previous / next page |
 
-## Adjusting the panel size
-
-The plugin uses shared viewport coordinates for Eden, Ryujinx and Recomp. It does not apply an automatic 1.5x correction for a particular emulator. If a Yuzu setup displays an oversized panel, adjust the existing width, maximum height, font size and X/Y settings. There is no separate Yuzu scaling option.
-
 If Insert does not open Forge, check that keyboard passthrough is enabled in the emulator.
 
 ## Building from source
