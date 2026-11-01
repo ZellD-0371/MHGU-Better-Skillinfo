@@ -1,9 +1,11 @@
 //! Classify the operation before considering optional equipment-detail pages.
 #[derive(Clone,Copy,PartialEq,Debug)]
-pub enum EquipmentContext{Production,ProductionComparison,Upgrade,Move,Change,Other}
+pub enum EquipmentContext{Production,ProductionComparison,Upgrade,Move,Inspect,Change,Other}
 
 pub fn classify(layout:u32,operation:u32,page_count:u32,has_sockets:bool)->EquipmentContext{
     match (layout,operation){
+        // Menu -> Equipment Details is informational, even with five pages.
+        (9,0)=>EquipmentContext::Inspect,
         // Forge production and upgrades can both gain an optional socket page.
         (9,1)=>EquipmentContext::Production,
         (11|12,1)=>EquipmentContext::ProductionComparison,
@@ -19,7 +21,7 @@ pub fn relocation_skill_page(kind:u32,page_kind:u32)->bool{
 }
 
 pub fn upgrade_skill_page(kind:u32,page_kind:u32)->bool{
-    ((1..=5).contains(&kind)&&matches!(page_kind,7|8))
+    ((1..=6).contains(&kind)&&matches!(page_kind,7|8))
         ||((7..=21).contains(&kind)&&page_kind==8)
 }
 

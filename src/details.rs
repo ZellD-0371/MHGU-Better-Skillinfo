@@ -22,6 +22,7 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
     a.change=matches!(context,crate::equipment_context::EquipmentContext::Change|crate::equipment_context::EquipmentContext::ProductionComparison);
     a.upgrade=context==crate::equipment_context::EquipmentContext::Upgrade;
     a.relocate=context==crate::equipment_context::EquipmentContext::Move;
+    a.inspect=context==crate::equipment_context::EquipmentContext::Inspect;
     a.selected=unsafe{rd(owner+0x50)}&0x4000!=0;
     if valid(equip){
         let raw=unsafe{rd(equip+4)};
@@ -30,7 +31,7 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
         if (1..=6).contains(&kind){a.slot=kind as u8;}
         let pager=unsafe{rd(owner+0x4c)};
         let page=if valid(pager){unsafe{byte(pager+0xd)}}else{0};
-        a.eligible=if a.relocate{
+        a.eligible=if a.relocate||a.inspect{
             crate::equipment_context::relocation_skill_page(kind,page_kind)
         }else if a.change{
             (matches!(page,3|4)&&matches!(page_kind,7|8))||(kind==6&&page==0&&page_kind==4)
@@ -41,10 +42,12 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
             // A mismatched armor can still have valid intrinsic skills, but it
             // cannot supply a meaningful After value for the current weapon type.
             // Keep UNKNOWN instead of presenting the game's excluded skill as 0.
-            let compatible=crate::equipped::preview_compatible(base,equip);
-            a.incompatible=compatible==Some(false);
-            if compatible==Some(true){
-                a.pack_totals=crate::equipped::snapshot(base,unsafe{rd(owner+0xb8)});
+            if !a.inspect{
+                let compatible=crate::equipped::preview_compatible(base,equip);
+                a.incompatible=compatible==Some(false);
+                if compatible==Some(true){
+                    a.pack_totals=crate::equipped::snapshot(base,unsafe{rd(owner+0xb8)});
+                }
             }
             if page_kind==8{
                 // Same helper and signed byte layout as the game's socket-page renderer.
