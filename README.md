@@ -22,8 +22,11 @@ It shows skill activation requirements and effects that may not be clear from it
 - Compares skill points before and after equipment or decoration changes, combining duplicate skill entries.
 - Indicates when armor is incompatible with the current Blademaster or Gunner type.
 - Supports 9 display languages.
+- Click “Insert” to access various settings
 
 Rather than replacing in-game descriptions, the plugin displays a separate panel through Forge. You can preview the expected changes by moving the cursor without actually changing your equipped gear or decorations.
+
+If Insert does not open Forge, check that keyboard passthrough is enabled in the emulator.
 
 ## Compatibility
 
@@ -46,8 +49,6 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | --- | --- |
 | Hold L3 + move the right stick left / right | Previous / next page |
 | Ctrl + ← / → | Previous / next page |
-
-If Insert does not open Forge, check that keyboard passthrough is enabled in the emulator.
 
 ## Building from source
 
