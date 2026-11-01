@@ -45,10 +45,10 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 
 The following tools are required to build the plugin. They are not needed if you only want to install a prebuilt release.
 
-- Rust nightly and `rust-src` ? specified in `rust-toolchain.toml`
-- devkitARM ? configure `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH
-- Forge CLI ? use the SDK revision specified below
-- Python 3 ? used for optional release packaging; no third-party Python packages required
+- **Rust nightly and `rust-src`**: Specified in `rust-toolchain.toml`.
+- **devkitARM**: Set `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH.
+- **Forge CLI**: Use the SDK revision specified below.
+- **Python 3**: Required only for optional release packaging. No third-party Python packages are needed.
 
 ```powershell
 cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2a0aa291ffbd3d2f7628c0e2d96d220 cargo-mhgu-forge --locked
