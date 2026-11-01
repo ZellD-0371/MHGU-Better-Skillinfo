@@ -15,6 +15,7 @@
 It shows skill activation requirements and effects that may not be clear from item descriptions alone. It also lets you compare how your total skill points would change when replacing equipment or decorations.
 
 > Designed for MHGU Global v1.4.0. Japanese is supported as a display language, but the Japanese version of MHXX is not supported.
+
 > For emulators, the Forge v1.5.1 mod must be installed.
 
 ## Features
