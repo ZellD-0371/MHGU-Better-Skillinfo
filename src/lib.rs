@@ -4,6 +4,7 @@ mod navigation;
 mod pagination;
 mod controller;
 mod panel;
+mod layout;
 mod sound;
 mod generated;
 mod storage;
@@ -44,8 +45,8 @@ impl Config {
         }
         if !version3&&c.x==40&&c.y==20{c.x=42;c.y=53;}
         c.language=c.language.min(8);c.x=c.x.clamp(0,85);c.y=c.y.clamp(0,200);
-        c.max_height=c.max_height.clamp(240,680);c.width=c.width.clamp(260,500);c.font_size=c.font_size.clamp(12,20);
-        c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(260,500);c.center_height=c.center_height.clamp(240,680);c.center_font_size=c.center_font_size.clamp(12,20);
+        c.max_height=c.max_height.clamp(200,680);c.width=c.width.clamp(180,500);c.font_size=c.font_size.clamp(5,20);
+        c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(180,500);c.center_height=c.center_height.clamp(200,680);c.center_font_size=c.center_font_size.clamp(5,20);
         if !c.center_opacity.is_finite(){return Err(())}
         c.center_opacity=((c.center_opacity.clamp(0.1,1.)*10.+0.5) as i32) as f32/10.;
         if !c.opacity.is_finite(){return Err(())}
@@ -114,7 +115,16 @@ unsafe fn capture(owner:u32,group:u32,widget:u32,text:u32){
 }
 
 #[forge::hook(offset=0x56e808)]
-fn set_text(owner:u32,group:u32,widget:u32,text:u32)->u32{unsafe{capture(owner,group,widget,text)}original!(owner,group,widget,text)}
+fn set_text(owner:u32,group:u32,widget:u32,text:u32)->u32{
+    unsafe{capture(owner,group,widget,text)}
+    // Native wrapper: ldr r0,[r0,#0x24]; b main+0x547564.
+    // Forge copies these two instructions verbatim into its trampoline. The B
+    // is PC-relative and would jump elsewhere from the trampoline's RX address.
+    // Reproduce the wrapper directly instead of executing that copied branch.
+    let base=STATE.with(|s|s.base);
+    let render:unsafe extern "C" fn(u32,u32,u32,u32)->u32=unsafe{core::mem::transmute(base+0x547564)};
+    unsafe{render(rd(owner+0x24),group,widget,text)}
+}
 #[forge::hook(offset=0x56ea08)]
 fn show_text(owner:u32,group:u32,widget:u32,text:u32)->u32{unsafe{capture(owner,group,widget,text)}original!(owner,group,widget,text)}
 #[forge::hook(offset=0x56dc88)]
@@ -140,14 +150,14 @@ fn socket_page(owner:u32)->u32{
 #[forge::entry]
 fn main(){
     let base=forge::mem::text_addr();
-    let compatible=unsafe{rd(base+0x56e808)==0xe5900024&&rd(base+0x56ea08)==0xe92d4070&&rd(base+0x56dc88)==0xe92d48f0&&rd(base+0x57f5ac)==0xe92d4070&&rd(base+0xdb7b8)==0xe0800081&&rd(base+0x6353fc)==0xe92d4ff0&&rd(base+0xdb0b0)==0xe92d4070&&rd(base+0xdb160)==0xe92d4070&&rd(base+0xdaf18)==0xe1d000b4};
+    let compatible=unsafe{rd(base+0x56e808)==0xe5900024&&rd(base+0x56e80c)==0xeaff6354&&rd(base+0x547564)==0xe92d4070&&rd(base+0x56ea08)==0xe92d4070&&rd(base+0x56dc88)==0xe92d48f0&&rd(base+0x57f5ac)==0xe92d4070&&rd(base+0xdb7b8)==0xe0800081&&rd(base+0x6353fc)==0xe92d4ff0&&rd(base+0xdb0b0)==0xe92d4070&&rd(base+0xdb160)==0xe92d4070&&rd(base+0xdaf18)==0xe1d000b4};
     let config=storage::SETTINGS.load(Config::DEFAULT,Config::parse);
     STATE.with(|s|{s.base=base;s.config=config;s.installed=compatible});
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
     if input_ready{info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
-    info!("[better-skillinfo] MHGU Better_Skillinfo v0.8.24: {} items / 9 languages, main=0x{:X}",DECOS.len(),base);
+    info!("[better-skillinfo] MHGU Better_Skillinfo v0.8.31: {} items / 9 languages, main=0x{:X}",DECOS.len(),base);
 }
 
 #[unsafe(no_mangle)]
@@ -253,6 +263,7 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
     Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count:d.points.len(),key:0x4445434f00000000|index as u64,preview:false,center:false,incompatible:false,projection:Projection::AddDecoration})
 }
 fn push_font(size:f32)->bool{if let Some(f)=unsafe{FONT}{imgui::push_font(&f,Some(size));true}else{false}}
+
 fn color(r:f32,g:f32,b:f32)->ImVec4{ImVec4{x:r,y:g,z:b,w:1.}}
 fn colored(text:&str,c:ImVec4){imgui::push_style_color(forge::sys::imgui::ImGuiCol::Text,c);imgui::text(text);imgui::pop_style_color(1);}
 
@@ -298,9 +309,9 @@ pub extern "C" fn forge_onImGuiRender(){
         imgui::text(locales::EXTRA[c.language].left.to_str().unwrap_or("Left layout"));
         imgui::slider_int(c"X",&mut c.x,0,85,ImGuiSliderFlags::AlwaysClamp);
         imgui::slider_int(c"Y",&mut c.y,0,200,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.width,&mut c.width,260,500,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.height,&mut c.max_height,240,680,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.size,&mut c.font_size,12,20,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.width,&mut c.width,180,500,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.height,&mut c.max_height,200,680,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.size,&mut c.font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igSliderFloat(ui.opacity.as_ptr(),&mut c.opacity,0.1,1.,c"%.1f".as_ptr(),ImGuiSliderFlags::AlwaysClamp);}
         c.opacity=((c.opacity*10.+0.5) as i32).clamp(1,10) as f32/10.;
         let extra=&locales::EXTRA[c.language];
@@ -309,9 +320,9 @@ pub extern "C" fn forge_onImGuiRender(){
         imgui::slider_int(c"Y##center",&mut c.center_y,0,200,ImGuiSliderFlags::AlwaysClamp);
         // IDs are scoped so the two layout profiles can share translated labels.
         unsafe{forge::sys::imgui::igPushID_Str(c"center-layout".as_ptr());}
-        imgui::slider_int(ui.width,&mut c.center_width,260,500,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.height,&mut c.center_height,240,680,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.size,&mut c.center_font_size,12,20,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.width,&mut c.center_width,180,500,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.height,&mut c.center_height,200,680,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.size,&mut c.center_font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igSliderFloat(ui.opacity.as_ptr(),&mut c.center_opacity,0.1,1.,c"%.1f".as_ptr(),ImGuiSliderFlags::AlwaysClamp);forge::sys::imgui::igPopID();}
         c.center_opacity=((c.center_opacity*10.+0.5) as i32).clamp(1,10) as f32/10.;
         imgui::checkbox(ui.preview,&mut preview);

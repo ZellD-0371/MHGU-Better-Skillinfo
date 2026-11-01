@@ -155,9 +155,13 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
 }
 
 pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
-    let scale=imgui::get_io().DisplaySize.y/720.;if scale<=0.{return}
+    let viewport=unsafe{forge::sys::imgui::igGetMainViewport()};
+    let size=if viewport.is_null(){(0.,0.)}else{unsafe{((*viewport).Size.x,(*viewport).Size.y)}};
+    let display=imgui::get_io().DisplaySize;
+    let Some((logical_width,logical_height))=crate::layout::viewport_size(size,(display.x,display.y)) else{return};
+    let scale=logical_height/720.;
     if selected.center{
-        c.x=((imgui::get_io().DisplaySize.x/scale-c.center_width as f32)/2.) as i32+c.center_x;
+        c.x=((logical_width/scale-c.center_width as f32)/2.) as i32+c.center_x;
         c.y=c.center_y;c.width=c.center_width;c.max_height=c.center_height;c.font_size=c.center_font_size;c.opacity=c.center_opacity;
     }
     let max_height=(c.max_height as f32).min(720.-c.y as f32-16.)*scale;

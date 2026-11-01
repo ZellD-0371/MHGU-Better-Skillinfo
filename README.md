@@ -10,7 +10,7 @@
 
 # Better-Skillinfo
 
-**A Forge overlay plugin for MHGU Recomp that displays detailed skill information for equipment and decorations.**
+**A Forge overlay plugin for MHGU Recomp or Switch Emulator that displays detailed skill information for equipment and decorations.**
 
 It shows skill activation requirements and effects that may not be clear from item descriptions alone. It also lets you compare how your total skill points would change when replacing equipment or decorations.
 
@@ -29,7 +29,7 @@ Rather than replacing in-game descriptions, the plugin displays a separate panel
 
 | Item | Supported environment |
 | --- | --- |
-| Runtime | MHGU Recomp PC version with built-in Forge support |
+| Runtime | MHGU Recomp PC version with built-in Forge support or a switch emulator with Forge installed |
 | Game data | MHGU Global v1.4.0 |
 | Display languages | English, 한국어, 日本語, 简体中文, 繁體中文, Deutsch, Français, Italiano, Español |
 
@@ -46,6 +46,12 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | --- | --- |
 | Hold L3 + move the right stick left / right | Previous / next page |
 | Ctrl + ← / → | Previous / next page |
+
+## Adjusting the panel size
+
+The plugin uses shared viewport coordinates for Eden, Ryujinx and Recomp. It does not apply an automatic 1.5x correction for a particular emulator. If a Yuzu setup displays an oversized panel, adjust the existing width, maximum height, font size and X/Y settings. There is no separate Yuzu scaling option.
+
+If Insert does not open Forge, check that keyboard passthrough is enabled in the emulator.
 
 ## Building from source
 
@@ -84,7 +90,7 @@ Build artifacts are excluded through `.gitignore`, while `Cargo.lock` is retaine
 
 If you encounter incorrect information or display issues, please include the following details:
 
-- MHGU Recomp and Better-Skillinfo versions
+- MHGU Recomp or Switch Emulator name and Better-Skillinfo versions
 - The menu where the issue occurs and the specific page number
 - Selected equipment or decorations, currently equipped gear, and Blademaster/Gunner type
 - Expected behavior versus actual behavior, preferably with screenshots

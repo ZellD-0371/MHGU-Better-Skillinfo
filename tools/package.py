@@ -6,7 +6,6 @@ files={
     'romfs/nativeNX/plugins/better_skillinfo.nro':PROJECT/'better_skillinfo.nro',
     'romfs/nativeNX/plugins/better-skillinfo/NotoSansCJKkr-Regular.otf':PROJECT/'assets/NotoSansCJKkr-Regular.otf',
     'NOTO_LICENSE.txt':PROJECT/'assets/NOTO_LICENSE.txt',
-    'README_KO.md':PROJECT/'README_KO.md',
 }
 manifest={}
 for name,src in files.items():

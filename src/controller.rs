@@ -1,6 +1,8 @@
 //! Filter the game's five nn::hid imports, leaving Forge and host input untouched.
 use core::{ptr,sync::atomic::{AtomicU32,Ordering}};
 use crate::{STATE,content,navigation::{L3,RIGHT_STICK,Navigation}};
+const PLT:[u32;5]=[0x13f0af0,0x13f0afc,0x13f0b08,0x13f0b14,0x13f0b20];
+const LAZY_RESOLVER:u32=0x13efd44;
 const GOT:[u32;5]=[0x1838494,0x1838498,0x183849c,0x18384a0,0x18384a4];
 // Compact diagnostic snapshot: raw buttons/X/Y, delivered buttons/X/Y, capture, scope, sequence.
 #[unsafe(no_mangle)]
@@ -59,8 +61,18 @@ pub fn install(base:u32)->bool{
     let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
     // Validate every slot before changing any. Existing import wrappers remain in the call chain.
     for (i,offset) in GOT.iter().enumerate(){
-        let address=unsafe{read(base+offset)};
-        if address<0x10000||address&3!=0{return false}
+        let mut address=unsafe{read(base+offset)};
+        if address==base+LAZY_RESOLVER{
+            // Bind through the real PLT entry, which supplies the resolver's r12.
+            // Calling/storing the shared resolver stub as a function pointer is
+            // invalid, and later binding would overwrite our GOT filter.
+            #[repr(C,align(8))] struct NpadState([u8;40]);
+            let mut state=NpadState([0;40]);let port=0u32;
+            let bind:unsafe extern "C" fn(*mut NpadState,*const u32)=unsafe{core::mem::transmute(base+PLT[i])};
+            unsafe{bind(&mut state,&port)};
+            address=unsafe{read(base+offset)};
+        }
+        if address<0x10000||address&3!=0||address==base+LAZY_RESOLVER{return false}
         ORIGINAL[i].store(address,Ordering::Release);
     }
     for (i,offset) in GOT.iter().enumerate(){unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};}

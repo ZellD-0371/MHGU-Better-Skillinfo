@@ -10,7 +10,7 @@
 
 # Better-Skillinfo
 
-**MHGU Recomp에서 장비와 장식주의 스킬 정보를 확인하는 Forge 오버레이 플러그인입니다.**
+**MHGU Recomp 및 에뮬레이터에서 장비와 장식주의 스킬 정보를 확인하는 Forge 오버레이 플러그인입니다.**
 
 아이템 설명만으로 알기 어려운 스킬 발동 조건과 효과를 표시하고, 장비나 장식주를 교체했을 때 전체 스킬 포인트가 어떻게 달라지는지 비교할 수 있습니다.
 
@@ -29,7 +29,7 @@
 
 | 항목 | 지원 범위 |
 | --- | --- |
-| 실행 환경 | Forge가 내장된 MHGU Recomp PC판 |
+| 실행 환경 | Forge가 내장된 MHGU Recomp PC판 또는 Forge가 설치된 스위치 에뮬레이터 |
 | 게임 데이터 | MHGU 글로벌판 1.4.0 |
 | 표시 언어 | English, 한국어, 日本語, 简体中文, 繁體中文, Deutsch, Français, Italiano, Español |
 
@@ -46,6 +46,12 @@
 | --- | --- |
 | L3를 누른 채 R 스틱 왼쪽 / 오른쪽 | 이전 / 다음 페이지 |
 | Ctrl + ← / → | 이전 / 다음 페이지 |
+
+## 화면 크기 조절
+
+Eden·Ryujinx와 Recomp를 기준으로 같은 화면 좌표 계산을 사용하며, 특정 에뮬레이터에 대한 1.5배 자동 보정을 적용하지 않습니다. 일부 Yuzu 환경에서 패널이 크게 보이면 기존 패널 너비·최대 높이·글자 크기·X/Y 설정으로 맞춰 주세요. 별도 Yuzu 전용 배율 옵션은 없습니다.
+
+Forge의 Insert 메뉴가 열리지 않으면 에뮬레이터의 키보드 전달(Keyboard) 설정이 켜져 있는지 확인하세요.
 
 ## 소스에서 빌드
 
@@ -82,7 +88,7 @@ cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2
 
 표시 오류를 발견하면 다음 내용을 함께 남겨 주세요.
 
-- MHGU Recomp 및 Better-Skillinfo 버전
+- MHGU Recomp 혹은 에뮬레이터 이름 및 Better-Skillinfo 버전
 - 문제가 발생한 메뉴와 상세 페이지 번호
 - 선택 장비·장식주, 현재 착용 상태, 검사·거너 타입
 - 기대한 표시와 실제 표시, 가능하면 스크린샷
