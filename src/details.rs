@@ -5,12 +5,11 @@ fn valid(p:u32)->bool{(0x10000..0xeffff000).contains(&p)}
 fn add(a:&mut Armor,gu:u16,points:i32){
     if gu==0{return}
     let Some(tree)=TREES.iter().find(|t|t.gu_id==gu) else{return};
-    if let Some(row)=a.points[..a.count].iter_mut().find(|r|r.0==tree.id){row.1+=points;}
-    else if a.count<a.points.len(){a.points[a.count]=(tree.id,points);a.count+=1;}
+    crate::equipment_skills::add(&mut a.points,&mut a.count,tree.id,points);
 }
 pub fn capture(owner:u32,equip:u32,page_kind:u32){
     if !valid(owner){return}
-    let (base,enabled)=STATE.with(|s|(s.base,s.config.enabled&&(s.config.armor_enabled||s.config.change_enabled)));
+    let (base,enabled)=STATE.with(|s|(s.base,s.config.enabled&&(s.config.armor_enabled||s.config.change_enabled||s.config.deco_enabled)));
     if !enabled{return}
     let mut a=Armor{owner,..Armor::EMPTY};
     // The dispatch writes owner+F8. Its page list starts at +5C, terminated by kind 28.
@@ -23,15 +22,19 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
     a.upgrade=context==crate::equipment_context::EquipmentContext::Upgrade;
     a.relocate=context==crate::equipment_context::EquipmentContext::Move;
     a.inspect=context==crate::equipment_context::EquipmentContext::Inspect;
+    a.attachment=crate::equipment_context::attachment_browse(unsafe{rd(owner+0x54)},unsafe{rd(owner+0x58)},unsafe{rd(owner+0x50)});
     a.selected=unsafe{rd(owner+0x50)}&0x4000!=0;
     if valid(equip){
         let raw=unsafe{rd(equip+4)};
         a.identity=raw as u64|((unsafe{rd(equip+8)} as u64)<<32);
         let kind=raw&31;
+        let items=core::array::from_fn(|slot|unsafe{ptr::read_unaligned((equip+0xa+slot as u32*2) as *const u16)});
         if (1..=6).contains(&kind){a.slot=kind as u8;}
         let pager=unsafe{rd(owner+0x4c)};
         let page=if valid(pager){unsafe{byte(pager+0xd)}}else{0};
-        a.eligible=if a.relocate||a.inspect{
+        a.eligible=if a.attachment{
+            crate::equipment_context::attachment_skill_page(kind,page_kind,items.iter().any(|&item|item!=0))
+        }else if a.relocate||a.inspect{
             crate::equipment_context::relocation_skill_page(kind,page_kind)
         }else if a.change{
             (matches!(page,3|4)&&matches!(page_kind,7|8))||(kind==6&&page==0&&page_kind==4)
@@ -42,16 +45,27 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
             // A mismatched armor can still have valid intrinsic skills, but it
             // cannot supply a meaningful After value for the current weapon type.
             // Keep UNKNOWN instead of presenting the game's excluded skill as 0.
-            if !a.inspect{
+            if !a.inspect&&!a.attachment{
                 let compatible=crate::equipped::preview_compatible(base,equip);
                 a.incompatible=compatible==Some(false);
                 if compatible==Some(true){
                     a.pack_totals=crate::equipped::snapshot(base,unsafe{rd(owner+0xb8)});
                 }
             }
-            if page_kind==8{
+            if a.attachment{
+                if kind==6{
+                    for n in 0..2{add(&mut a,unsafe{byte(equip+0x10+n)} as u16,unsafe{ptr::read((equip+0x12+n) as *const i8)} as i32);}
+                }else{
+                    let table=unsafe{rd(equip+0x28)};
+                    if valid(table){for i in 0..11{
+                        let row=table+i*4;
+                        add(&mut a,unsafe{ptr::read_unaligned(row as *const u16)},unsafe{ptr::read((row+2) as *const i8)} as i32);
+                    }}
+                }
+                crate::equipment_skills::decorations(&mut a.points,&mut a.count,items);
+            }else if page_kind==8{
                 // Same helper and signed byte layout as the game's socket-page renderer.
-                let deco:unsafe extern "C" fn(u32,u32)->u32=unsafe{core::mem::transmute(base+0xdb7b8)};
+                let deco:unsafe extern "C" fn(u32,u32)->u32=unsafe{core::mem::transmute((base+0xdb7b8) as usize)};
                 for slot in 0..3{
                     let id=unsafe{ptr::read_unaligned((equip+0xa+slot*2) as *const u16)};
                     if id==0{continue}

@@ -25,6 +25,17 @@ pub fn upgrade_skill_page(kind:u32,page_kind:u32)->bool{
         ||((7..=21).contains(&kind)&&page_kind==8)
 }
 
+pub fn attachment_browse(layout:u32,operation:u32,flags:u32)->bool{
+    // Both locations use 0x8288. Actual upgrades use 0x8308 instead.
+    operation==2&&matches!(layout,0|9)&&flags&0x80!=0&&flags&0x100==0
+}
+
+pub fn attachment_skill_page(kind:u32,page_kind:u32,has_decorations:bool)->bool{
+    if !(1..=21).contains(&kind){return false}
+    matches!(page_kind,7|8)||(kind==6&&page_kind==4)
+        ||(has_decorations&&match kind{1..=5=>page_kind==3,7..=21=>matches!(page_kind,1|2),_=>false})
+}
+
 pub fn equipment_slot(kind:u32)->Option<usize>{
     match kind{1..=6=>Some(kind as usize),7..=21=>Some(0),_=>None}
 }

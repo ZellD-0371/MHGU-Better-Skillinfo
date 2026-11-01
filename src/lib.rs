@@ -12,6 +12,7 @@ mod locales;
 mod equipped;
 mod details;
 mod equipment_context;
+mod equipment_skills;
 mod comparison;
 mod sockets;
 use core::{cell::UnsafeCell,ffi::c_void,fmt::{self,Write},ptr,sync::atomic::{AtomicBool,Ordering}};
@@ -67,8 +68,8 @@ impl Write for Text { fn write_str(&mut self,s:&str)->fmt::Result{if self.len+s.
 struct Candidate { owner:u32,vt:u32,group:u32,widget:u32,deco:usize,age:u32,score:u32 }
 const EMPTY:Candidate=Candidate{owner:0,vt:0,group:0,widget:0,deco:0,age:0,score:0};
 #[derive(Clone,Copy)]
-struct Armor {identity:u64,owner:u32,points:[(u16,i32);11],pack_totals:[i16;206],count:usize,change:bool,eligible:bool,selected:bool,slot:u8,upgrade:bool,relocate:bool,inspect:bool,production:bool,incompatible:bool}
-impl Armor{const EMPTY:Self=Self{identity:0,owner:0,points:[(0,0);11],pack_totals:[equipped::UNKNOWN;206],count:0,change:false,eligible:false,selected:false,slot:255,upgrade:false,relocate:false,inspect:false,production:false,incompatible:false};}
+struct Armor {identity:u64,owner:u32,points:[(u16,i32);32],pack_totals:[i16;206],count:usize,change:bool,eligible:bool,selected:bool,slot:u8,upgrade:bool,relocate:bool,inspect:bool,attachment:bool,production:bool,incompatible:bool}
+impl Armor{const EMPTY:Self=Self{identity:0,owner:0,points:[(0,0);32],pack_totals:[equipped::UNKNOWN;206],count:0,change:false,eligible:false,selected:false,slot:255,upgrade:false,relocate:false,inspect:false,attachment:false,production:false,incompatible:false};}
 struct State {socket_owner:u32,socket_info_owner:u32,page:usize,page_count:usize,page_key:u64,navigation:navigation::Navigation,input_ready:bool,armors:[Armor;8],config:Config,base:u32,installed:bool,frame:u32,candidates:[Candidate;8],preview:bool,preview_id:i32,preview_center:bool,status:u8,logs:u32 }
 impl State { const fn new()->Self{Self{socket_owner:0,socket_info_owner:0,page:0,page_count:1,page_key:0,navigation:navigation::Navigation::new(),input_ready:false,armors:[Armor::EMPTY;8],config:Config::DEFAULT,base:0,installed:false,frame:0,candidates:[EMPTY;8],preview:false,preview_id:1,preview_center:false,status:0,logs:0}} }
 struct Shared { locked:AtomicBool,data:UnsafeCell<State> }
@@ -157,7 +158,7 @@ fn main(){
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
     if input_ready{info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
-    info!("[better-skillinfo] MHGU Better_Skillinfo v0.8.32: {} items / 9 languages, main=0x{:X}",DECOS.len(),base);
+    info!("[better-skillinfo] MHGU Better_Skillinfo v0.8.33: {} items / 9 languages, main=0x{:X}",DECOS.len(),base);
 }
 
 #[unsafe(no_mangle)]
@@ -174,9 +175,9 @@ fn active_candidate(s:&State)->Option<usize>{
         .max_by_key(|c|(c.score,c.age)).map(|c|c.deco)
 }
 #[derive(Clone,Copy,PartialEq)]
-enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,UnwornDecoration,ProductionEquipment}
+enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,AttachmentBrowse,UnwornDecoration,ProductionEquipment}
 impl Projection{
-    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::UnwornDecoration|Self::ProductionEquipment)}
+    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::AttachmentBrowse|Self::UnwornDecoration|Self::ProductionEquipment)}
 }
 #[derive(Clone,Copy)]
 struct Content {points:[(u16,i32);32],compared:[Option<i32>;32],total_before:[Option<i32>;32],total_after:[Option<i32>;32],count:usize,key:u64,preview:bool,center:bool,incompatible:bool,projection:Projection}
@@ -191,12 +192,12 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
     let live=|a:&&Armor|a.owner>=0x10000&&unsafe{rd(a.owner)==s.base+0x176e344&&byte(a.owner+0x18)!=0};
     // Relocation and the equipment-details menu only inspect existing items.
     // Recognize the window even on non-skill pages to prevent stale jewel-name fallback.
-    if let Some(a)=s.armors.iter().filter(live).find(|a|a.relocate||a.inspect){
-        if !s.config.change_enabled||!a.eligible||a.count==0{return None}
+    if let Some(a)=s.armors.iter().filter(live).find(|a|a.relocate||a.inspect||a.attachment){
+        if !(if a.attachment{s.config.deco_enabled}else{s.config.change_enabled})||!a.eligible||a.count==0{return None}
         let mut points=[(0,0);32];points[..a.count].copy_from_slice(&a.points[..a.count]);
-        let mut key=a.identity^((a.owner as u64)<<32)^if a.inspect{0x494e535000000000}else{0x4d4f564500000000};
+        let mut key=a.identity^((a.owner as u64)<<32)^if a.attachment{0x4154544100000000}else if a.inspect{0x494e535000000000}else{0x4d4f564500000000};
         for &(id,p) in &points[..a.count]{key=key.wrapping_mul(1099511628211)^id as u64^((p as u32 as u64)<<16);}
-        return Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count:a.count,key,preview:false,center:!a.inspect,incompatible:false,projection:if a.inspect{Projection::InspectEquipment}else{Projection::MoveEquipment}})
+        return Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count:a.count,key,preview:false,center:a.relocate,incompatible:false,projection:if a.attachment{Projection::AttachmentBrowse}else if a.inspect{Projection::InspectEquipment}else{Projection::MoveEquipment}})
     }
     // A recognized equipment-change detail page takes priority over decoration-name matches.
     if s.armors.iter().filter(live).any(|a|a.change){
