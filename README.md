@@ -1,196 +1,85 @@
+[English](README.md) | [�ѱ���](README.ko.md)
+
 # Better-Skillinfo
 
-**MHGU Recomp에서 장비와 장식주의 스킬 정보를 확인하는 Forge 오버레이 플러그인입니다.**
+**A Forge overlay plugin for MHGU Recomp that displays detailed skill information for equipment and decorations.**
 
-아이템 설명만으로 알기 어려운 스킬 발동 조건과 효과를 표시하고, 장비나 장식주를 교체했을 때 전체 스킬 포인트가 어떻게 달라지는지 비교할 수 있습니다.
+It shows skill activation requirements and effects that may not be clear from item descriptions alone. It also lets you compare how your total skill points would change when replacing equipment or decorations.
 
-> MHGU 글로벌판 1.4.0을 대상으로 합니다. 일본어 표시를 지원하지만, 일본판 MHXX 게임은 지원하지 않습니다.
+> Designed for MHGU Global v1.4.0. Japanese is supported as a display language, but the Japanese version of MHXX is not supported.
 
-## 주요 기능
+## Features
 
-- 스킬 계통별 발동 포인트, 발동 스킬 이름, 효과 설명 표시
-- 장비·장식주 교체 전후 수치 비교 및 중복 스킬 통합
-- 검사·거너 타입이 맞지 않는 방어구의 호환 불가 안내
-- 화면에 맞춘 자동 페이지 분할과 패드·키보드 페이지 전환
-- 왼쪽·중앙 레이아웃 개별 설정
-- 9개 표시 언어와 설정 UI 번역
+- Displays activation thresholds, activated skill names, and effect descriptions for each skill category.
+- Compares skill points before and after equipment or decoration changes, combining duplicate skill entries.
+- Indicates when armor is incompatible with the current Blademaster or Gunner type.
+- Supports 9 display languages.
 
-게임 내 설명을 덮어쓰는 방식이 아니라 Forge를 통해 별도 패널을 표시합니다. 커서를 옮겨 예상값을 확인하는 동안 실제 장비나 장식주를 변경하지 않습니다.
+Rather than replacing in-game descriptions, the plugin displays a separate panel through Forge. You can preview the expected changes by moving the cursor without actually changing your equipped gear or decorations.
 
-## 지원 환경
+## Compatibility
 
-| 항목 | 지원 범위 |
+| Item | Supported environment |
 | --- | --- |
-| 실행 환경 | Forge가 내장된 MHGU Recomp PC판 |
-| 게임 데이터 | MHGU 글로벌판 1.4.0 |
-| 표시 언어 | English, 한국어, 日本語, 简体中文, 繁體中文, Deutsch, Français, Italiano, Español |
-| 기본 언어 | English |
+| Runtime | MHGU Recomp PC version with built-in Forge support |
+| Game data | MHGU Global v1.4.0 |
+| Display languages | English, �ѱ���, ������, ??����, ��������, Deutsch, Francais, Italiano, Espanol |
 
-한글 패치는 필수가 아닙니다. 플러그인의 표시 언어는 게임 텍스트 언어와 별도로 선택합니다. 다른 게임 버전과 에뮬레이터 환경은 지원 대상으로 검증하지 않았습니다.
+## Installation
 
-## 설치
+1. Close the game.
+2. Extract the release ZIP archive.
+3. Place the `Better_Skillinfo` folder in the game's `mods` directory.
+4. Enable `Better_Skillinfo` in the in-game mod list.
 
-1. 게임을 종료합니다.
-2. 배포 ZIP을 압축 해제합니다.
-3. `Better_Skillinfo` 폴더를 게임의 `mods` 폴더에 넣습니다.
-4. 게임의 모드 목록에서 `Better_Skillinfo`를 활성화합니다.
+When the content exceeds the maximum panel height, it is split into multiple pages instead of using scrolling. The plugin tries to keep each skill group on the same page. If a group is too long to fit, its skill heading is repeated on the following page.
 
-설치 경로는 다음과 같습니다. 다국어 글꼴도 함께 설치해야 합니다.
-
-```text
-MHGU/
-└─ mods/
-   └─ Better_Skillinfo/
-      ├─ NOTO_LICENSE.txt
-      ├─ README_KO.md
-      └─ romfs/nativeNX/plugins/
-         ├─ better_skillinfo.nro
-         └─ better-skillinfo/
-            └─ NotoSansCJKkr-Regular.otf
-```
-
-같은 플러그인을 여러 폴더에 중복 설치하지 마세요. 업데이트할 때도 게임을 종료한 뒤 파일을 교체합니다.
-
-## 표시되는 화면
-
-게임 상세창에서 스킬이 표시되는 페이지를 열면 오버레이가 나타납니다. 기본 능력치나 소재 등 스킬과 관계없는 페이지에서는 숨깁니다.
-
-| 화면 | 표시 내용 | 배치 |
-| --- | --- | --- |
-| 장식품 생산 | 장식주 자체의 스킬 수치와 발동 효과 | 왼쪽 |
-| 방어구 생산 — 기본 화면 | 선택한 방어구의 스킬 수치와 발동 효과 | 왼쪽 |
-| 방어구 생산 — X로 전환한 비교 화면 | 현재 부위와 생산 후 착용할 부위의 스킬 비교, 전체 합계 변화 | 왼쪽 |
-| 장비 강화 | 해당 장비의 스킬과 장착 장식주 효과 | 왼쪽 |
-| NPC의 장식품 탈착 | 기존·선택 장식주의 스킬 및 착용 중인 장비의 합계 변화 | 왼쪽 |
-| 아이템 박스의 장식품 탈착 | NPC 탈착과 같은 정보 | 중앙 |
-| 아이템 박스의 장비 변경 | 교체 전후 스킬과 전체 합계 변화 | 중앙 |
-| 아이템 박스의 위치 이동 | 선택 장비의 스킬 정보 | 중앙 |
-
-장비 변경에서는 무기·방어구의 4·5페이지, 호석의 1·4·5페이지 중 해당 스킬 페이지에서 표시합니다. 강화·위치 이동은 전체 페이지 수가 달라도 실제 스킬 페이지를 따라갑니다.
-
-### 수치 읽는 방법
-
-왼쪽 숫자는 **비교 대상 장비나 장식주 자체의 기여값**이고, 오른쪽 `스킬 포인트`는 **전체 착용 장비의 합계**입니다.
-
-예를 들어 현재 부위에 공격 +4가 있고 새 장비에는 공격이 없다면 다음과 같이 표시됩니다.
-
-```text
-공격 +4 → 0                     스킬 포인트: 21 → 17
-```
-
-위·아래 상세창에 있는 스킬을 합쳐 한 번씩 표시합니다. 한쪽에만 있는 스킬은 반대쪽을 0으로 취급합니다. 양수는 초록색, 0은 흰색, 음수는 빨간색으로 표시합니다.
-
-장식품 탈착에서는 다음 규칙을 사용합니다.
-
-- 위쪽 슬롯을 보고 있을 때는 현재 합계만 표시합니다.
-- 아래쪽 목록에서 해제를 선택하면 기존 장식주의 기여값을 뺍니다.
-- 다른 장식주를 선택하면 `현재 합계 − 기존 장식주 + 선택 장식주`를 표시합니다.
-- 미착용 장비의 장식품을 편집할 때는 전체 착용 합계를 숨깁니다.
-
-장식품 생산, 기본 방어구 생산, 강화, 위치 이동에서는 오른쪽 합계·예상값을 표시하지 않습니다.
-
-### 효과 설명 선택과 호환성
-
-`전체 표시`를 끄면 전체 합계를 표시하는 화면에서는 **After 합계의 부호**에 맞는 효과만 보여줍니다. After가 0이거나 `--`이면 Before 합계의 부호를 따릅니다. 합계가 없는 화면에서는 해당 아이템의 스킬 수치를 기준으로 합니다.
-
-`전체 표시`를 켜면 플러스·마이너스 효과를 모두 표시합니다. 마이너스 효과의 발동 조건은 -10, -15, -20처럼 절댓값이 작은 순서로 나옵니다.
-
-현재 무기와 검사·거너 타입이 맞지 않는 방어구는 상단에 **호환되지 않음**을 표시하고, After 합계는 `--`로 표시합니다. 계산값을 읽을 수 없는 경우에도 `--`가 표시될 수 있으며, 이 경우에는 타입 불일치 경고를 표시하지 않습니다.
-
-## 페이지 조작
-
-내용이 최대 높이를 넘으면 스크롤 대신 여러 페이지로 나눕니다. 가능한 한 스킬 한 묶음을 같은 페이지에 배치하고, 묶음 자체가 너무 길면 다음 페이지에도 스킬 제목을 반복합니다.
-
-| 입력 | 동작 |
+| Input | Action |
 | --- | --- |
-| L3를 누른 채 R 스틱 왼쪽 / 오른쪽 | 이전 / 다음 페이지 |
-| Ctrl + ← / → | 이전 / 다음 페이지 |
+| Hold L3 + move the right stick left / right | Previous / next page |
+| Ctrl + �� / �� | Previous / next page |
 
-R 스틱은 한 번 기울일 때 한 페이지씩 넘어갑니다. 다시 전환하려면 중앙으로 되돌린 뒤 기울이세요. 페이지 전환 시 게임의 상세 페이지 전환음을 재생합니다.
+## Building from source
 
-단축키는 정보 패널이 표시되는 화면에서만 동작합니다. L3를 누른 동안의 R 스틱 입력과 Ctrl을 누른 상태의 좌우 화살표는 게임의 기존 조작에 전달되지 않도록 처리합니다. 일반 R 스틱·화살표 조작은 유지하며, Forge 설정 메뉴와 미리보기에서는 단축키를 가로채지 않습니다.
+The following tools are required to build the plugin. They are not needed if you only want to install a prebuilt release.
 
-Recomp의 입력 변환 특성상 해당 정보 화면에서 L3 + 십자키 좌우 조합도 차단됩니다.
-
-## 설정
-
-`Insert → Plugin UI → Better_Skillinfo`에서 설정합니다.
-
-- 전체 활성화 및 장식주·방어구·장비 변경 정보 개별 활성화
-- `Language`: 표시 언어와 설정 UI 언어 선택
-- `전체 표시`: 플러스·마이너스 효과 모두 보기
-- 효과 설명 표시 여부
-- 왼쪽·중앙 레이아웃별 위치, 너비, 최대 높이, 글자 크기, 배경 불투명도
-- 1~8개 더미 스킬을 이용한 레이아웃 미리보기
-
-미리보기의 노란 프레임은 패널 너비와 실제 사용할 수 있는 최대 높이를 보여줍니다. 미리보기를 끄면 프레임도 사라집니다.
-
-| 기본 설정 | 왼쪽 배치 | 중앙 배치 |
-| --- | --- | --- |
-| X | 42 | 화면 가운데 기준 0 |
-| Y | 53 | 53 |
-| 너비 | 375 | 375 |
-| 최대 높이 | 525 | 525 |
-| 글자 크기 | 14 | 14 |
-| 배경 불투명도 | 0.9 | 0.9 |
-
-위치·크기는 720 높이 기준이며 화면 높이에 비례해 확대됩니다. 화면 비율이나 남은 공간에 따라 실제 표시 영역은 달라질 수 있습니다.
-
-`기본값`과 `설정 저장`은 확인 창을 거칩니다. 기본값으로 되돌린 설정을 다음 실행에도 유지하려면 설정 저장을 눌러 주세요. 설정은 게임의 사용자 저장 영역에 있는 `better_skillinfo.ini`에 저장됩니다.
-
-## 소스에서 빌드
-
-빌드에는 다음 도구가 필요합니다. 배포된 모드만 설치하는 사용자는 준비할 필요가 없습니다.
-
-- Rust nightly와 `rust-src` — `rust-toolchain.toml`에 지정
-- devkitARM — `DEVKITARM` 또는 `DEVKITPRO` 설정, 또는 `arm-none-eabi-gcc`를 PATH에 등록
-- Forge CLI — 아래 SDK 리비전 사용
-- Python 3 — 선택 사항인 배포 패키징에 사용하며 외부 Python 패키지는 필요 없음
+- Rust nightly and `rust-src` ? specified in `rust-toolchain.toml`
+- devkitARM ? configure `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH
+- Forge CLI ? use the SDK revision specified below
+- Python 3 ? used for optional release packaging; no third-party Python packages required
 
 ```powershell
 cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2a0aa291ffbd3d2f7628c0e2d96d220 cargo-mhgu-forge --locked
 
-# 프로젝트 폴더에서 빌드 및 패키징
+# Build and package from the project directory
 ./Build.ps1
 
-# NRO만 빌드
+# Build the NRO only
 ./Build.ps1 -SkipPackage
 ```
 
-결과물은 `better_skillinfo.nro`, `dist/Better_Skillinfo`, `Better_Skillinfo.zip`입니다. 첫 빌드는 의존성을 내려받기 위한 네트워크 연결이 필요하며, 캐시가 준비된 뒤에는 `-Offline`을 사용할 수 있습니다.
+### Project structure
 
-빌드·패키징 후 설치 스크립트를 사용할 수도 있습니다.
-
-```powershell
-./tools/install.ps1 -GameRoot 'X:/Games/MHGU'
-```
-
-### 소스 구성
-
-| 경로 | 내용 |
+| Path | Description |
 | --- | --- |
-| `src/` | 게임 연동, 입력 처리, 정보 패널, 페이지 분할, 번역, 스킬 데이터 |
-| `conf/better_skillinfo.ini` | 내장 기본 설정 |
-| `assets/` | 다국어 글꼴과 글꼴 라이선스 |
-| `.cargo/`, `link/`, `armv7a-none-eabi.json` | ARM32 빌드·링크 설정 |
-| `tools/` | 배포 패키징·설치 스크립트 |
+| `src/` | Game integration, input handling, information panels, pagination, translations, and skill data |
+| `conf/better_skillinfo.ini` | Embedded default configuration |
+| `assets/` | Multilingual fonts and font licenses |
+| `.cargo/`, `link/`, `armv7a-none-eabi.json` | ARM32 build and linker configuration |
+| `tools/` | Release packaging and installation scripts |
 
-빌드에 필요한 스킬 데이터는 `src/generated.rs`에 포함되어 있습니다. 원본 게임 덤프, 세이브, 로컬 분석 도구는 빌드에 필요하지 않습니다. 빌드 산출물은 `.gitignore`로 제외하며 의존성 고정을 위해 `Cargo.lock`은 유지합니다.
+The skill data required for building is included in `src/generated.rs`. Original game dumps, save files, and local analysis tools are not required.
 
-## 데이터와 라이선스
+Build artifacts are excluded through `.gitignore`, while `Cargo.lock` is retained to ensure reproducible dependency versions.
 
-스킬 이름·발동 조건·효과 설명은 제공된 다국어 MHXX 데이터베이스를 바탕으로 구성했습니다. 선택 장비의 포인트와 비교 합계는 게임 데이터에서 읽습니다.
+## Reporting issues
 
-글꼴은 **Noto Sans CJK KR**을 사용하며, SIL Open Font License는 [assets/NOTO_LICENSE.txt](assets/NOTO_LICENSE.txt)에 포함되어 있습니다. 프로젝트 코드 전체에 대한 라이선스는 아직 지정하지 않았습니다.
+If you encounter incorrect information or display issues, please include the following details:
 
-## 문제 제보
+- MHGU Recomp and Better-Skillinfo versions
+- The menu where the issue occurs and the specific page number
+- Selected equipment or decorations, currently equipped gear, and Blademaster/Gunner type
+- Expected behavior versus actual behavior, preferably with screenshots
+- If a crash occurs, the relevant `log.txt`
 
-표시 오류를 발견하면 다음 내용을 함께 남겨 주세요.
-
-- MHGU Recomp 및 Better-Skillinfo 버전
-- 문제가 발생한 메뉴와 상세 페이지 번호
-- 선택 장비·장식주, 현재 착용 상태, 검사·거너 타입
-- 기대한 표시와 실제 표시, 가능하면 스크린샷
-- 크래시가 발생했다면 해당 시점의 `log.txt`
-
-모든 장비 조합을 개별 실행 검증한 것은 아니므로, 재현 가능한 화면과 조작 순서가 문제를 확인하는 데 도움이 됩니다.
+Not every possible equipment combination has been individually tested in-game. Providing reproducible screenshots and step-by-step instructions will help identify and resolve issues.
