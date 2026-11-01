@@ -2,10 +2,10 @@
   <a href="README.md">English</a> | <strong>한국어</strong>
 </p>
 
-<p align="center">
-### 스크린샷
+<h3 align="center">스크린샷</h3>
 
-[스크린샷 보기](docs/screenshots.md)
+<p align="center">
+  <a href="docs/screenshots.md">스크린샷 보기</a>
 </p>
 
 # Better-Skillinfo
