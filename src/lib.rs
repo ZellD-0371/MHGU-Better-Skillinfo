@@ -4,6 +4,7 @@ mod navigation;
 mod pagination;
 mod controller;
 mod panel;
+mod skin;
 mod layout;
 mod sound;
 mod generated;

@@ -176,9 +176,13 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
     let pushed=crate::push_font(c.font_size as f32*scale);
     imgui::set_next_window_pos(ImVec2{x:c.x as f32*scale,y:c.y as f32*scale},ImGuiCond::Always,ImVec2{x:0.,y:0.});
     imgui::set_next_window_size(ImVec2{x:c.width as f32*scale,y:0.},ImGuiCond::Always);
-    imgui::set_next_window_bg_alpha(c.opacity);
+    unsafe {
+        forge::sys::imgui::igPushStyleVar_Vec2(forge::sys::imgui::ImGuiStyleVar::WindowPadding,ImVec2{x:12.*scale,y:12.*scale});
+        forge::sys::imgui::igPushStyleVar_Float(forge::sys::imgui::ImGuiStyleVar::WindowBorderSize,0.);
+    }
     let flags=ImGuiWindowFlags::NoTitleBar|ImGuiWindowFlags::NoResize|ImGuiWindowFlags::NoMove|ImGuiWindowFlags::NoSavedSettings|ImGuiWindowFlags::AlwaysAutoResize|ImGuiWindowFlags::NoInputs|ImGuiWindowFlags::NoScrollbar|ImGuiWindowFlags::NoScrollWithMouse;
-    if imgui::begin(c"MHGU Better_Skillinfo",None,flags){
+    if imgui::begin(c"MHGU Better_Skillinfo",None,flags|ImGuiWindowFlags::NoBackground){
+        crate::skin::begin();
         let width=(imgui::get_content_region_avail().x-2.).max(80.);
         let row_height=imgui::get_text_line_height_with_spacing();
         let padding=imgui::get_style().WindowPadding.y*2.;
@@ -261,6 +265,7 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
                 imgui::text(keyboard_hint);
             }
         }
+        crate::skin::end(scale,c.opacity);
     }
-    imgui::end();if pushed{imgui::pop_font();}
+    imgui::end();unsafe{forge::sys::imgui::igPopStyleVar(2);}if pushed{imgui::pop_font();}
 }
