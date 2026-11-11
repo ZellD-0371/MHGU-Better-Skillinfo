@@ -7,6 +7,7 @@ mod panel;
 mod skin;
 mod layout;
 mod sound;
+mod sound_guard;
 mod generated;
 mod storage;
 mod locales;
