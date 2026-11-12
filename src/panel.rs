@@ -186,12 +186,8 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
         let width=(imgui::get_content_region_avail().x-2.).max(80.);
         let row_height=imgui::get_text_line_height_with_spacing();
         let padding=imgui::get_style().WindowPadding.y*2.;
-        let hint=["L3 누름 + R ←/→","Hold L3 + R ←/→","L3押し込み + R ←/→","按住L3 + R ←/→","按住L3 + R ←/→","L3 halten + R ←/→","Maintenir L3 + R ←/→","Tieni L3 + R ←/→","Mantén L3 + R ←/→"][c.language];
-        let keyboard_hint="Ctrl + ←/→";
-        let keyboard_width=imgui::calc_text_size(keyboard_hint,false,0.).x;
-        let inline_hints=imgui::calc_text_size(hint,false,0.).x+keyboard_width+16.<=width;
-        // Include both hints when wrapping is necessary at narrow widths / large fonts.
-        let footer_rows=if selected.preview{3}else if inline_hints{2}else{wrapped(hint,width).len()+2};
+        // Reserve only the centered page counter; bindings remain in settings.
+        let footer_rows=1;
         // Repeat the warning on each page and reserve its text plus the gap below.
         let warning=if selected.incompatible{wrapped(crate::locales::INCOMPATIBLE[c.language],width)}else{Vec::new()};
         let warning_height=if warning.is_empty(){0.}else{(warning.len() as f32+0.5)*row_height};
@@ -214,9 +210,11 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
             s.page_count=count.max(1);s.page=s.page.min(count.saturating_sub(1));
             // Forge's keyboard API remains available while its settings menu is closed.
             // Preview/settings never consume these shortcuts; one arrow press moves one page.
-            if !selected.preview&&!forge::graphics::Graphics::is_menu_visible()&&forge::input::Input::is_ctrl_down(){
-                let left=forge::input::Input::is_key_pressed(forge::input::Key::Left);
-                let right=forge::input::Input::is_key_pressed(forge::input::Key::Right);
+            if !selected.preview&&!forge::graphics::Graphics::is_menu_visible(){
+                static HELD:core::sync::atomic::AtomicU32=core::sync::atomic::AtomicU32::new(0);
+                let now=crate::bindings::key_down(c.keyboard_previous) as u32|((crate::bindings::key_down(c.keyboard_next) as u32)<<1);
+                let pressed=now&!HELD.swap(now,core::sync::atomic::Ordering::AcqRel);
+                let left=pressed&1!=0;let right=pressed&2!=0;
                 let direction=right as i32-left as i32;
                 let next=crate::navigation::Navigation::page(s.page,s.page_count,direction);
                 if next!=s.page{crate::sound::request();s.page=next;}
@@ -254,16 +252,14 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
             }
         }
         if count>1 {
-            imgui::separator();let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",page+1,count);colored(counter.str(),color(1.,0.85,0.3));
-            if selected.preview{
-                imgui::push_text_wrap_pos(0.);imgui::text(crate::locales::UI[c.language].page.to_str().unwrap_or("Preview page"));imgui::pop_text_wrap_pos();
-            }else{
-                let pos=imgui::get_cursor_pos();
-                imgui::push_text_wrap_pos(0.);imgui::text(hint);imgui::pop_text_wrap_pos();
-                if inline_hints{imgui::same_line(pos.x+width-keyboard_width,0.);}
-                else{imgui::set_cursor_pos_x(pos.x+width-keyboard_width);}
-                imgui::text(keyboard_hint);
-            }
+            imgui::separator();
+            let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",page+1,count);
+            let left=imgui::get_cursor_pos().x;
+            let counter_width=imgui::calc_text_size(counter.str(),false,0.).x;
+            imgui::set_cursor_pos_x(left+((width-counter_width)*0.5).max(0.));
+            // The counter is the final item. Resetting the cursor after it makes
+            // ImGui treat the trailing line spacing as an unsubmitted item.
+            colored(counter.str(),color(1.,0.85,0.3));
         }
         crate::skin::end(scale,c.opacity);
     }

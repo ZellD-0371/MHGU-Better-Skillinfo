@@ -1,6 +1,7 @@
 #![no_std]
 extern crate alloc;
 mod navigation;
+mod bindings;
 mod pagination;
 mod controller;
 mod panel;
@@ -22,9 +23,9 @@ use forge::{imgui,log::prelude::{info,warn,error},sys::imgui::{ImVec2,ImVec4,ImG
 use generated::*;
 
 #[derive(Clone,Copy,PartialEq)]
-struct Config { enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32 }
+struct Config { keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32 }
 impl Config {
-    const DEFAULT:Self=Self{enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9};
+    const DEFAULT:Self=Self{keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9};
     fn parse(text:&str)->Result<Self,()> {
         let mut c=Self::DEFAULT;
         let version3=text.lines().any(|line|line.split_once('=').is_some_and(|(k,v)|k.trim()=="version"&&v.trim()=="3"));
@@ -32,6 +33,8 @@ impl Config {
         for line in text.lines() {
             let Some((k,v))=line.split_once('=') else {continue};let v=v.trim();
             match k.trim() {
+                "keyboard_previous"=>c.keyboard_previous=v.parse().map_err(|_|())?,"keyboard_next"=>c.keyboard_next=v.parse().map_err(|_|())?,
+                "previous_binding"=>c.previous_binding=v.parse().map_err(|_|())?,"next_binding"=>c.next_binding=v.parse().map_err(|_|())?,
                 "enabled"=>c.enabled=v=="true", "armor_enabled"=>c.armor_enabled=v=="true", "language"=>c.language=v.parse().map_err(|_|())?,
                 "deco_enabled"=>c.deco_enabled=v=="true","change_enabled"=>c.change_enabled=v=="true",
                 "center_x"=>c.center_x=v.parse().map_err(|_|())?,"center_y"=>c.center_y=v.parse().map_err(|_|())?,
@@ -47,6 +50,8 @@ impl Config {
             }
         }
         if !version3&&c.x==40&&c.y==20{c.x=42;c.y=53;}
+        c.keyboard_previous=bindings::validate_key(c.keyboard_previous);c.keyboard_next=bindings::validate_key(c.keyboard_next);
+        c.previous_binding&=bindings::MASK;c.next_binding&=bindings::MASK;
         c.language=c.language.min(8);c.x=c.x.clamp(0,85);c.y=c.y.clamp(0,200);
         c.max_height=c.max_height.clamp(200,680);c.width=c.width.clamp(180,500);c.font_size=c.font_size.clamp(5,20);
         c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(180,500);c.center_height=c.center_height.clamp(200,680);c.center_font_size=c.center_font_size.clamp(5,20);
@@ -160,7 +165,7 @@ fn main(){
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
     if input_ready{info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
-    info!("[better-skillinfo] MHGU Better_Skillinfo v0.8.33: {} items / 9 languages, main=0x{:X}",DECOS.len(),base);
+    info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 
 #[unsafe(no_mangle)]
@@ -273,6 +278,8 @@ fn colored(text:&str,c:ImVec4){imgui::push_style_color(forge::sys::imgui::ImGuiC
 fn save_config(c:Config)->Result<(),&'static str>{
     let mut t=Text::new();let _=write!(t,"version=3\nenabled={}\narmor_enabled={}\nlanguage={}\nshow_all={}\nshow_descriptions={}\nx={}\ny={}\nwidth={}\nmax_height={}\nfont_size={}\nopacity={:.1}\n",c.enabled,c.armor_enabled,c.language,c.show_all,c.descriptions,c.x,c.y,c.width,c.max_height,c.font_size,c.opacity);
     let _=write!(t,"deco_enabled={}\nchange_enabled={}\ncenter_x={}\ncenter_y={}\ncenter_width={}\ncenter_height={}\ncenter_font_size={}\ncenter_opacity={:.1}\n",c.deco_enabled,c.change_enabled,c.center_x,c.center_y,c.center_width,c.center_height,c.center_font_size,c.center_opacity);
+    let _=write!(t,"keyboard_previous={}\nkeyboard_next={}\n",c.keyboard_previous,c.keyboard_next);
+    let _=write!(t,"previous_binding={}\nnext_binding={}\n",c.previous_binding,c.next_binding);
     storage::SETTINGS.save(t.str())
 }
 
@@ -291,24 +298,40 @@ fn confirmation(title:&core::ffi::CStr,question:&str,actions:&locales::Actions)-
 
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiRender(){
-    if imgui::tree_node(c"Better_Skillinfo"){
+    if imgui::tree_node(c"Better Skillinfo"){
         let pushed=push_font(18.);
         let (mut c,installed,mut preview,mut p,status)=STATE.with(|s|(s.config,s.installed,s.preview,s.preview_id,s.status));
         let ui=&locales::UI[c.language];
         if !installed{imgui::text(ui.unsupported);}
-        imgui::checkbox(ui.enabled,&mut c.enabled);
-        let armor_labels=[c"방어구 스킬 정보",c"Armor skill info",c"防具のスキル情報",c"防具技能信息",c"防具技能資訊",c"Rüstungsfähigkeiten",c"Infos des talents d’armure",c"Abilità delle armature",c"Habilidades de armadura"];
-        imgui::checkbox(locales::EXTRA[c.language].deco,&mut c.deco_enabled);
-        imgui::checkbox(armor_labels[c.language],&mut c.armor_enabled);
-        imgui::checkbox(locales::EXTRA[c.language].change,&mut c.change_enabled);
         let labels=[c"한국어",c"English",c"日本語",c"简体中文",c"繁體中文",c"Deutsch",c"Français",c"Italiano",c"Español"];
         if imgui::begin_combo(ui.language,labels[c.language],forge::sys::imgui::ImGuiComboFlags::None){
             for i in [1,0,2,3,4,5,6,7,8]{if imgui::selectable(labels[i],c.language==i,ImGuiSelectableFlags::None,ImVec2{x:0.,y:0.}){c.language=i}}
             imgui::end_combo();
         }
         let ui=&locales::UI[c.language];
+        let categories=[
+[c"기능 활성화",c"Enabled features",c"機能の有効化",c"启用功能",c"啟用功能",c"Aktive Funktionen",c"Fonctions actives",c"Funzioni attive",c"Funciones activas"],
+[c"정보 표시",c"Information display",c"情報表示",c"信息显示",c"資訊顯示",c"Informationsanzeige",c"Affichage des informations",c"Visualizzazione informazioni",c"Visualización de información"],
+[c"버튼 / 키 바인딩",c"Button / key bindings",c"ボタン・キー割り当て",c"按钮 / 按键绑定",c"按鈕 / 按鍵綁定",c"Tastenbelegung",c"Affectation des touches",c"Assegnazione tasti",c"Asignación de botones / teclas"],
+[c"배치 및 미리보기",c"Layout and preview",c"配置とプレビュー",c"布局与预览",c"配置與預覽",c"Layout und Vorschau",c"Disposition et aperçu",c"Layout e anteprima",c"Diseño y vista previa"]];
+        if imgui::tree_node(categories[0][c.language]){
+        imgui::checkbox(ui.enabled,&mut c.enabled);
+        let armor_labels=[c"방어구 스킬 정보",c"Armor skill info",c"防具のスキル情報",c"防具技能信息",c"防具技能資訊",c"Rüstungsfähigkeiten",c"Infos des talents d’armure",c"Abilità delle armature",c"Habilidades de armadura"];
+        imgui::checkbox(locales::EXTRA[c.language].deco,&mut c.deco_enabled);
+        imgui::checkbox(armor_labels[c.language],&mut c.armor_enabled);
+        imgui::checkbox(locales::EXTRA[c.language].change,&mut c.change_enabled);
+        imgui::tree_pop();
+        }
+        if imgui::tree_node(categories[1][c.language]){
         imgui::checkbox(ui.all,&mut c.show_all);
         imgui::checkbox(ui.descriptions,&mut c.descriptions);
+        imgui::tree_pop();
+        }
+        if imgui::tree_node(categories[2][c.language]){
+        bindings::ui(&mut c);
+        imgui::tree_pop();
+        }
+        if imgui::tree_node(categories[3][c.language]){
         imgui::text(locales::EXTRA[c.language].left.to_str().unwrap_or("Left layout"));
         imgui::slider_int(c"X",&mut c.x,0,85,ImGuiSliderFlags::AlwaysClamp);
         imgui::slider_int(c"Y",&mut c.y,0,200,ImGuiSliderFlags::AlwaysClamp);
@@ -337,6 +360,8 @@ pub extern "C" fn forge_onImGuiRender(){
                 STATE.with(|s|{let next=number as usize-1;if next!=s.page{sound::request();s.page=next;}});
             }
         }
+        imgui::tree_pop();
+        }
         let mut status=status;
         let actions=&locales::ACTIONS[c.language];
         if imgui::button(actions.defaults,ImVec2{x:0.,y:0.}){
@@ -363,6 +388,8 @@ pub extern "C" fn forge_onImGuiRender(){
 
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiFreeRender(){
+    bindings::capture_overlay(STATE.with(|s|s.config.language));
+    if bindings::capturing(){return}
     let (c,selected,base,installed)=STATE.with(|s|(s.config,content(s,true),s.base,s.installed));
     let Some(selected)=selected else{STATE.with(|s|{s.page=0;s.page_count=1;s.page_key=0;s.navigation=navigation::Navigation::new();});return};
     panel::render(c,selected,base,installed);

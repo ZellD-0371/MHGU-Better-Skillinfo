@@ -8,7 +8,7 @@
   <a href="docs/screenshots.md">View screenshots</a>
 </p>
 
-# Better-Skillinfo
+# Better Skillinfo
 
 **A Forge overlay plugin for MHGU Recomp or Switch Emulator that displays detailed skill information for equipment and decorations.**
 
@@ -51,6 +51,12 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | --- | --- |
 | Hold L3 + move the right stick left / right | Previous / next page |
 | Ctrl + ← / → | Previous / next page |
+
+Page controls can be customized under **Better Skillinfo → Button / key bindings**. Controller and keyboard shortcuts have separate previous/next bindings. Keyboard shortcuts support a key with Ctrl, Shift, and/or Alt. No conflict checks are imposed.
+
+To register a controller combination, click the binding button, close Forge with its menu toggle (normally Insert), press and release the desired combination, then reopen Forge and confirm. A capture panel displays the live input and pending combination while settings are closed. Game input is blocked during capture. Keyboard shortcuts use the same close, capture, and reopen flow. The capture window is centered and uses the bundled multilingual font; the settings dialog shows the pending combination and confirmation button only after input is captured. While Forge is closed, the capture panel always shows live input and the pending combination. A new gesture replaces the pending combination. Keyboard input is ignored during controller capture, including keyboard-to-controller mappings. Use **Save settings** to persist changes.
+
+The panel footer shows only a centered yellow page counter. Assigned controller and keyboard shortcuts are shown in Forge settings.
 
 ## Building from source
 

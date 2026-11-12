@@ -8,7 +8,7 @@
   <a href="docs/screenshots.md">스크린샷 보기</a>
 </p>
 
-# Better-Skillinfo
+# Better Skillinfo
 
 **MHGU Recomp 및 에뮬레이터에서 장비와 장식주의 스킬 정보를 확인하는 Forge 오버레이 플러그인입니다.**
 
