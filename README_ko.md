@@ -94,3 +94,10 @@ cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2
 - 크래시가 발생했다면 해당 시점의 `log.txt`
 
 모든 장비 조합을 개별 실행 검증한 것은 아니므로, 재현 가능한 화면과 조작 순서가 문제를 확인하는 데 도움이 됩니다.
+
+
+## 언어 리소스와 경량 폰트
+
+스킬 이름과 설명은 `resources/texts.json`에서 빌드하며, 배포 시 `languages/*.bin`에 분리됩니다. 선택한 언어 하나만 메모리에 읽고, 변경할 때 이전 언어와 패널 캐시를 해제합니다. 설정창의 공통 UI 문구 및 게임 텍스트 판별용 이름은 실행 파일에 유지됩니다.
+
+폰트는 9개 언어의 실제 사용 문자와 설정창 문자를 합친 공통 경량 폰트 하나를 유지합니다. 언어 변경 시 폰트를 교체하거나 해제하지 않습니다. 빌드에는 Python 3와 fonttools(`python -m pip install fonttools`)가 필요합니다. 언어 파일과 `BetterSkillinfo-Subset.otf`를 함께 배포해야 합니다.

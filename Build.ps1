@@ -12,6 +12,11 @@ try {
     $taskCompiler = Get-Command arm-none-eabi-gcc -ErrorAction SilentlyContinue
     if (-not $taskCompiler) { throw 'Install devkitARM and set DEVKITARM, or add arm-none-eabi-gcc to PATH.' }
     $env:CARGO_TARGET_ARMV7A_NONE_EABI_LINKER = $taskCompiler.Source
+    $taskPython = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $taskPython) { $taskPython = Get-Command python3 -ErrorAction SilentlyContinue }
+    if (-not $taskPython) { throw 'Python 3 with fonttools is required to prepare language resources and the subset font.' }
+    & $taskPython.Source './tools/build_resources.py'
+    if ($LASTEXITCODE -ne 0) { throw 'Resource generation failed' }
     & cargo +nightly forge build --release
     if ($LASTEXITCODE -ne 0) { throw 'Forge build failed' }
     if (-not $SkipPackage) {

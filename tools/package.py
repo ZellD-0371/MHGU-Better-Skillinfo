@@ -4,9 +4,11 @@ PROJECT=pathlib.Path(__file__).resolve().parents[1]
 OUT=PROJECT/'dist/Better_Skillinfo'
 files={
     'romfs/nativeNX/plugins/better_skillinfo.nro':PROJECT/'better_skillinfo.nro',
-    'romfs/nativeNX/plugins/better-skillinfo/NotoSansCJKkr-Regular.otf':PROJECT/'assets/NotoSansCJKkr-Regular.otf',
+    'romfs/nativeNX/plugins/better-skillinfo/BetterSkillinfo-Subset.otf':PROJECT/'assets/BetterSkillinfo-Subset.otf',
     'NOTO_LICENSE.txt':PROJECT/'assets/NOTO_LICENSE.txt',
 }
+for resource in (PROJECT/'assets/languages').glob('*.bin'):
+    files['romfs/nativeNX/plugins/better-skillinfo/languages/'+resource.name]=resource
 manifest={}
 for name,src in files.items():
     dest=OUT/name

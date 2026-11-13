@@ -65,7 +65,7 @@ The following tools are required to build the plugin. They are not needed if you
 - Rust nightly and `rust-src` — The required Rust toolchain and components are specified in `rust-toolchain.toml`.
 - devkitARM — Set `DEVKITARM` or `DEVKITPRO`, or add `arm-none-eabi-gcc` to your PATH.
 - Forge CLI — Use the SDK revision specified below.
-- Python 3 — Required only for optional release packaging. No third-party Python packages are needed.
+- Python 3 with `fonttools` (`python -m pip install fonttools`) — Builds language resources and the subset font; also packages releases.
 
 ```powershell
 cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2a0aa291ffbd3d2f7628c0e2d96d220 cargo-mhgu-forge --locked
@@ -87,8 +87,6 @@ cargo install --git https://github.com/Lawrence-al/forge-rs.git --rev f2af0622a2
 | `.cargo/`, `link/`, `armv7a-none-eabi.json` | ARM32 build and linker configuration |
 | `tools/` | Release packaging and installation scripts |
 
-The skill data required for building is included in `src/generated.rs`. Original game dumps, save files, and local analysis tools are not required.
-
 Build artifacts are excluded through `.gitignore`, while `Cargo.lock` is retained to ensure reproducible dependency versions.
 
 ## Reporting issues
@@ -102,3 +100,10 @@ If you encounter incorrect information or display issues, please include the fol
 - If a crash occurs, the relevant `log.txt`
 
 Not every possible equipment combination has been individually tested in-game. Providing reproducible screenshots and step-by-step instructions will help identify and resolve issues.
+
+## Language Resources and Lightweight Fonts
+
+Skill IDs and thresholds are in `src/generated.rs`; localized text is in `resources/texts.json`. 
+The build generates nine language files and loads only the selected language. 
+Switching languages releases the previous text and panel cache. 
+One shared subset font covers the characters used by all nine languages and settings; it stays loaded for the lifetime of the UI context, with no font replacement or removal during language changes. Files in `assets/languages/` and `assets/BetterSkillinfo-Subset.otf` must be shipped with the plugin.

@@ -37,6 +37,7 @@ struct Cache {key:Key,pages:Vec<Vec<Row>>}
 // Only forge_onImGuiFreeRender accesses this cache, on the UI thread.
 struct GuiCache(UnsafeCell<Option<Cache>>);unsafe impl Sync for GuiCache{}
 static CACHE:GuiCache=GuiCache(UnsafeCell::new(None));
+pub fn clear_cache(){unsafe{*CACHE.0.get()=None;}}
 
 fn wrapped(text:&str,width:f32)->Vec<String>{
     let mut result=Vec::new();
@@ -79,7 +80,7 @@ fn header(rows:&mut Vec<Row>,title:String,left_values:Vec<Value>,current:String,
         value_lines(rows,&current,&right_values,width,color(0.9,0.9,0.9));
     }
 }
-fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>;32])->Vec<Vec<Row>>{
+fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>;32],language:Option<&crate::language::Data>)->Vec<Vec<Row>>{
     let mut groups=Vec::new();let l=c.language;
     let label=["스킬 포인트","Skill Points","スキルポイント","技能点数","技能點數","Fähigkeitspunkte","Points de talent","Punti abilità","Puntos de habilidad"][l];
     if selected.preview{
@@ -105,11 +106,12 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
         }
         return paginate(&groups,capacity)
     }
+    let Some(language)=language else{let mut rows=Vec::new();lines(&mut rows,"Language file missing or invalid",width,color(1.,0.3,0.3));return alloc::vec![rows]};
     for (i,&(id,points)) in selected.points[..selected.count].iter().enumerate(){
         let Some(tree)=TREES.iter().find(|t|t.id==id) else{continue};
         let mut rows=Vec::new();let mut title=String::new();let mut current=String::new();
         let mut left_values=Vec::new();let mut right_values=Vec::new();
-        title.push_str(tree.names[l]);
+        title.push_str(language.text(tree.name));
         if let Some(other)=selected.compared[i]{
             title.push(' ');value(&mut title,&mut left_values,points,true);
             title.push_str(" → ");value(&mut title,&mut left_values,other,true);
@@ -144,9 +146,9 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
             if negative{effects.sort_by_key(|effect|effect.points.unsigned_abs());}
             for effect in effects{
                 let mut effect_line=Text::new();
-                if tree.gu_id==203{let _=write!(effect_line,"{}",effect.names[l]);}else{let _=write!(effect_line,"{} {:+}: {}",if negative{"≤"}else{"≥"},effect.points,effect.names[l]);}
+                if tree.gu_id==203{let _=write!(effect_line,"{}",language.text(effect.name));}else{let _=write!(effect_line,"{} {:+}: {}",if negative{"≤"}else{"≥"},effect.points,language.text(effect.name));}
                 lines(&mut rows,effect_line.str(),width,if negative{color(1.,0.65,0.6)}else{color(0.85,0.92,1.)});
-                if c.descriptions{lines(&mut rows,effect.descriptions[l],width,color(1.,1.,1.));}
+                if c.descriptions{lines(&mut rows,language.text(effect.description),width,color(1.,1.,1.));}
             }
         }
         groups.push((headers,rows));
@@ -203,7 +205,7 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
         }
         let key=Key{selection:selected.key,config:c,width:width.to_bits(),capacity,totals,projected:selected.total_after,projection:selected.projection,incompatible:selected.incompatible};
         let slot=unsafe{&mut *CACHE.0.get()};
-        if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=build(c,&selected,width,capacity,totals);*slot=Some(Cache{key,pages});}
+        if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,&selected,width,capacity,totals,language));*slot=Some(Cache{key,pages});}
         let cache=slot.as_ref().unwrap();let count=cache.pages.len();
         let page=STATE.with(|s|{
             if s.page_key!=selected.key{s.page=0;s.page_key=selected.key;}

@@ -10,6 +10,7 @@ mod layout;
 mod sound;
 mod sound_guard;
 mod generated;
+mod language;
 mod storage;
 mod locales;
 mod equipped;
@@ -172,7 +173,7 @@ fn main(){
 pub extern "C" fn forge_onUpdate(_dt:f32){let base=STATE.with(|s|{s.frame=s.frame.wrapping_add(1);s.base});sound::update(base);}
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiInit(_ctx:*mut c_void,_alloc:*mut c_void,_free:*mut c_void){
-    let f=imgui::ImFont::load(c"app:/nativeNX/plugins/better-skillinfo/NotoSansCJKkr-Regular.otf");
+    let f=imgui::ImFont::load(c"app:/nativeNX/plugins/better-skillinfo/BetterSkillinfo-Subset.otf");
     if f.is_none(){warn!("[better-skillinfo] multilingual font could not be loaded");}
     unsafe{FONT=f;}
 }
@@ -380,6 +381,7 @@ pub extern "C" fn forge_onImGuiRender(){
         }
         let ui=&locales::UI[c.language];
         match status{1=>imgui::text(ui.saved),2=>imgui::text(ui.failed),3=>imgui::text(locales::ACTIONS[c.language].reset_done),_=>{}}
+        language::select(c.language);
         STATE.with(|s|{s.config=c;s.preview=preview;s.preview_id=p;s.status=status;});
         if pushed{imgui::pop_font();}
         imgui::tree_pop();
@@ -388,6 +390,7 @@ pub extern "C" fn forge_onImGuiRender(){
 
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiFreeRender(){
+    language::select(STATE.with(|s|s.config.language));
     bindings::capture_overlay(STATE.with(|s|s.config.language));
     if bindings::capturing(){return}
     let (c,selected,base,installed)=STATE.with(|s|(s.config,content(s,true),s.base,s.installed));

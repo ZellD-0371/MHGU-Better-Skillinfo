@@ -1,0 +1,30 @@
+{
+  "strings_per_language": 859,
+  "language_bytes": {
+    "ko": 39443,
+    "en": 34433,
+    "ja": 38840,
+    "zh-Hans": 31569,
+    "zh-Hant": 31793,
+    "de": 36941,
+    "fr": 36529,
+    "it": 35314,
+    "es": 36200
+  },
+  "all_language_bytes": 321062,
+  "font_original_bytes": 16433112,
+  "font_subset_bytes": 960368,
+  "glyph_codepoints": 2078,
+  "font_missing_required": 0,
+  "language_sha256": {
+    "de.bin": "34c5d35606d07cd82e44aaf175d431de9207ccb081df28deb3f680131e96ef1d",
+    "en.bin": "c4d32198e4e27a414a4ea5e5ab6b8924c9d5f24b7d2e0eda2b2c96fdd8f81032",
+    "es.bin": "9aeb0518e4e27ebeddbb1b85537e702bf239db6dce291519d61db8ed34842f8f",
+    "fr.bin": "e5771d5beaf6380a6d2d747f1bd711f572167964bb69d3563e0f4c9a8787f507",
+    "it.bin": "27a08979791a7325422047a09a0cf7f4d08267d00f78434c1816b146d14ed1db",
+    "ja.bin": "8cc7963a2891a51ccc18aaa92263d7fcd3b945f504d7c4eeea7058e776ae7370",
+    "ko.bin": "085ecafa2f2bbafdf7182f42ee98f8ca1dc9e8a906352de7fa0d94e0aca05a9b",
+    "zh-Hans.bin": "d97f64fc6c4287251bcd7408cd278c3112b92bee384d9221c2965aa194155157",
+    "zh-Hant.bin": "0d90289f2b5be85eaa2e67d3f68e318fb90b88bc733ca8a2508e18480f2dd0a5"
+  }
+}
