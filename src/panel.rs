@@ -161,22 +161,29 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
     let size=if viewport.is_null(){(0.,0.)}else{unsafe{((*viewport).Size.x,(*viewport).Size.y)}};
     let display=imgui::get_io().DisplaySize;
     let Some((logical_width,logical_height))=crate::layout::viewport_size(size,(display.x,display.y)) else{return};
-    let scale=logical_height/720.;
+    let hud=(if installed{crate::layout::hud_size(base)}else{None})
+        .and_then(|(rw,rh,uw)|crate::layout::hud_viewport(logical_width,logical_height,rw,rh,uw))
+        .or_else(||crate::layout::native_viewport(logical_width,logical_height));
+    let Some(hud)=hud else{return};
+    let scale=hud.scale;
     if selected.center{
-        c.x=((logical_width/scale-c.center_width as f32)/2.) as i32+c.center_x;
+        c.x=c.center_x;
         c.y=c.center_y;c.width=c.center_width;c.max_height=c.center_height;c.font_size=c.center_font_size;c.opacity=c.center_opacity;
     }
+    let (mut panel_x,mut panel_y)=hud.panel_position(selected.center,c.x as f32,c.y as f32,c.width as f32);
+    // ImGui uses absolute viewport coordinates, while HUD geometry is local.
+    if !viewport.is_null(){unsafe{panel_x+=(*viewport).Pos.x;panel_y+=(*viewport).Pos.y;}}
     let max_height=(c.max_height as f32).min(720.-c.y as f32-16.)*scale;
     if selected.preview{
         // Draw the effective outer bounds independently of the auto-sized content window.
         // This does not create an input target or change layout/pagination.
         imgui::DrawList::foreground().add_rect(
-            ImVec2{x:c.x as f32*scale,y:c.y as f32*scale},
-            ImVec2{x:(c.x+c.width) as f32*scale,y:c.y as f32*scale+max_height},
+            ImVec2{x:panel_x,y:panel_y},
+            ImVec2{x:panel_x+c.width as f32*scale,y:panel_y+max_height},
             0xff40cfff,0.,(2.*scale).max(1.),forge::sys::imgui::ImDrawFlags::None);
     }
     let pushed=crate::push_font(c.font_size as f32*scale);
-    imgui::set_next_window_pos(ImVec2{x:c.x as f32*scale,y:c.y as f32*scale},ImGuiCond::Always,ImVec2{x:0.,y:0.});
+    imgui::set_next_window_pos(ImVec2{x:panel_x,y:panel_y},ImGuiCond::Always,ImVec2{x:0.,y:0.});
     imgui::set_next_window_size(ImVec2{x:c.width as f32*scale,y:0.},ImGuiCond::Always);
     unsafe {
         forge::sys::imgui::igPushStyleVar_Vec2(forge::sys::imgui::ImGuiStyleVar::WindowPadding,ImVec2{x:12.*scale,y:12.*scale});
