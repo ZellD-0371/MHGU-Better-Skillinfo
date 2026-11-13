@@ -16,6 +16,6 @@ for name,src in files.items():
     shutil.copy2(src,dest)
     manifest[name]=hashlib.sha256(dest.read_bytes()).hexdigest()
 (PROJECT/'dist/manifest_sha256.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
-with zipfile.ZipFile(PROJECT/'Better_Skillinfo.zip','w',zipfile.ZIP_DEFLATED) as archive:
-    for name in files:archive.write(OUT/name,'Better_Skillinfo/'+name)
-print(json.dumps({'files':len(files),'archive_bytes':(PROJECT/'Better_Skillinfo.zip').stat().st_size}))
+with zipfile.ZipFile(PROJECT/'Better-Skillinfo.zip','w',zipfile.ZIP_DEFLATED) as archive:
+    for name in files:archive.write(OUT/name,'Better-Skillinfo/'+name)
+print(json.dumps({'files':len(files),'archive_bytes':(PROJECT/'Better-Skillinfo.zip').stat().st_size}))
