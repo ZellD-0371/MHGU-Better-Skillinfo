@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 use core::ffi::{CStr, c_char, c_void};
-use forge::log::prelude::{info, warn};
+use forge::log::prelude::warn;
 
 pub const MAX_BYTES: usize = 8192;
 
@@ -105,7 +105,7 @@ impl Location {
             self.write_mounted(self.defaults)
                 .map_err(|_| ReadError::Io)?;
             bytes[..self.defaults.len()].copy_from_slice(self.defaults.as_bytes());
-            info!("{}: generated default INI", self.display);
+            crate::log_info!("{}: generated default INI", self.display);
             return Ok(core::str::from_utf8(&bytes[..self.defaults.len()]).unwrap());
         }
         if code != 0 {
@@ -126,7 +126,7 @@ impl Location {
             return Err(ReadError::TooLarge);
         }
         let text = core::str::from_utf8(&bytes[..size as usize]).map_err(|_| ReadError::Utf8)?;
-        info!("{}: loaded", self.display);
+        crate::log_info!("{}: loaded", self.display);
         Ok(text)
     }
 
@@ -185,7 +185,7 @@ impl Location {
         if code != 0 {
             return self.failed(code, "Could not commit MHGU save INI. See Forge log.");
         }
-        info!("{}: saved", self.display);
+        crate::log_info!("{}: saved", self.display);
         Ok(())
     }
 

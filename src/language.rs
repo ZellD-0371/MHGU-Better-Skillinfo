@@ -1,7 +1,7 @@
 //! One selected language in owned memory; no borrowed text escapes a UI frame.
 use alloc::{vec::Vec,ffi::CString};
 use core::{cell::UnsafeCell,ffi::{c_char,c_void}};
-use forge::log::prelude::{info,warn};
+use forge::log::prelude::warn;
 #[repr(C)]#[derive(Clone,Copy)] struct File(u32);
 unsafe extern "C"{
  #[link_name="_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci"] fn open(f:*mut File,p:*const c_char,m:i32)->u32;
@@ -47,7 +47,7 @@ pub fn select(language:usize){
  cache.data=None; // drop the previous allocation before opening the next language
  cache.language=language;
  cache.data=load(language);
- if let Some(data)=&cache.data{info!("[better-skillinfo] language {} loaded: {} bytes; previous language released",language,data.bytes.len());}
+ if let Some(data)=&cache.data{crate::log_info!("[better-skillinfo] language {} loaded: {} bytes; previous language released",language,data.bytes.len());}
  else{warn!("[better-skillinfo] language {} missing or invalid; check mod language files",language);}
 }
 pub fn with<R>(f:impl FnOnce(Option<&Data>)->R)->R{f(unsafe{&*CACHE.0.get()}.data.as_ref())}

@@ -11,6 +11,7 @@ mod sound;
 mod sound_guard;
 mod generated;
 mod language;
+mod logging;
 mod storage;
 mod locales;
 mod equipped;
@@ -20,13 +21,13 @@ mod equipment_skills;
 mod comparison;
 mod sockets;
 use core::{cell::UnsafeCell,ffi::c_void,fmt::{self,Write},ptr,sync::atomic::{AtomicBool,Ordering}};
-use forge::{imgui,log::prelude::{info,warn,error},sys::imgui::{ImVec2,ImVec4,ImGuiSliderFlags,ImGuiSelectableFlags}};
+use forge::{imgui,log::prelude::{warn,error},sys::imgui::{ImVec2,ImVec4,ImGuiSliderFlags,ImGuiSelectableFlags}};
 use generated::*;
 
 #[derive(Clone,Copy,PartialEq)]
-struct Config { keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32 }
+struct Config { logging:bool,keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32 }
 impl Config {
-    const DEFAULT:Self=Self{keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9};
+    const DEFAULT:Self=Self{logging:false,keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9};
     fn parse(text:&str)->Result<Self,()> {
         let mut c=Self::DEFAULT;
         let version3=text.lines().any(|line|line.split_once('=').is_some_and(|(k,v)|k.trim()=="version"&&v.trim()=="3"));
@@ -34,6 +35,7 @@ impl Config {
         for line in text.lines() {
             let Some((k,v))=line.split_once('=') else {continue};let v=v.trim();
             match k.trim() {
+                "logging_enabled"=>c.logging=v=="true",
                 "keyboard_previous"=>c.keyboard_previous=v.parse().map_err(|_|())?,"keyboard_next"=>c.keyboard_next=v.parse().map_err(|_|())?,
                 "previous_binding"=>c.previous_binding=v.parse().map_err(|_|())?,"next_binding"=>c.next_binding=v.parse().map_err(|_|())?,
                 "enabled"=>c.enabled=v=="true", "armor_enabled"=>c.armor_enabled=v=="true", "language"=>c.language=v.parse().map_err(|_|())?,
@@ -117,7 +119,7 @@ unsafe fn capture(owner:u32,group:u32,widget:u32,text:u32){
         let Some(deco)=found else{return};
         let off=vt.wrapping_sub(s.base);
         let score=if [0x176e344,0x176e738,0x177613c].contains(&off){100}else{10};
-        if s.logs<40{info!("[better-skillinfo] item={} vt=+0x{:X} group={} widget={}",DECOS[deco].gu_item,off,group,widget);s.logs+=1;}
+        if crate::logging::enabled()&&s.logs<40{crate::log_info!("[better-skillinfo] item={} vt=+0x{:X} group={} widget={}",DECOS[deco].gu_item,off,group,widget);s.logs+=1;}
         let index=s.candidates.iter().position(|c|c.owner==0).unwrap_or_else(||s.candidates.iter().enumerate().min_by_key(|(_,c)|(c.score,c.age)).unwrap().0);
         s.candidates[index]=Candidate{owner,vt,group,widget,deco,age:s.frame,score};
     });
@@ -161,12 +163,13 @@ fn main(){
     let base=forge::mem::text_addr();
     let compatible=unsafe{rd(base+0x56e808)==0xe5900024&&rd(base+0x56e80c)==0xeaff6354&&rd(base+0x547564)==0xe92d4070&&rd(base+0x56ea08)==0xe92d4070&&rd(base+0x56dc88)==0xe92d48f0&&rd(base+0x57f5ac)==0xe92d4070&&rd(base+0xdb7b8)==0xe0800081&&rd(base+0x6353fc)==0xe92d4ff0&&rd(base+0xdb0b0)==0xe92d4070&&rd(base+0xdb160)==0xe92d4070&&rd(base+0xdaf18)==0xe1d000b4};
     let config=storage::SETTINGS.load(Config::DEFAULT,Config::parse);
+    logging::set(config.logging);
     STATE.with(|s|{s.base=base;s.config=config;s.installed=compatible});
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
-    if input_ready{info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
-    info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
+    if input_ready{crate::log_info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
+    crate::log_info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 
 #[unsafe(no_mangle)]
@@ -277,7 +280,7 @@ fn color(r:f32,g:f32,b:f32)->ImVec4{ImVec4{x:r,y:g,z:b,w:1.}}
 fn colored(text:&str,c:ImVec4){imgui::push_style_color(forge::sys::imgui::ImGuiCol::Text,c);imgui::text(text);imgui::pop_style_color(1);}
 
 fn save_config(c:Config)->Result<(),&'static str>{
-    let mut t=Text::new();let _=write!(t,"version=3\nenabled={}\narmor_enabled={}\nlanguage={}\nshow_all={}\nshow_descriptions={}\nx={}\ny={}\nwidth={}\nmax_height={}\nfont_size={}\nopacity={:.1}\n",c.enabled,c.armor_enabled,c.language,c.show_all,c.descriptions,c.x,c.y,c.width,c.max_height,c.font_size,c.opacity);
+    let mut t=Text::new();let _=write!(t,"logging_enabled={}\n",c.logging);let _=write!(t,"version=3\nenabled={}\narmor_enabled={}\nlanguage={}\nshow_all={}\nshow_descriptions={}\nx={}\ny={}\nwidth={}\nmax_height={}\nfont_size={}\nopacity={:.1}\n",c.enabled,c.armor_enabled,c.language,c.show_all,c.descriptions,c.x,c.y,c.width,c.max_height,c.font_size,c.opacity);
     let _=write!(t,"deco_enabled={}\nchange_enabled={}\ncenter_x={}\ncenter_y={}\ncenter_width={}\ncenter_height={}\ncenter_font_size={}\ncenter_opacity={:.1}\n",c.deco_enabled,c.change_enabled,c.center_x,c.center_y,c.center_width,c.center_height,c.center_font_size,c.center_opacity);
     let _=write!(t,"keyboard_previous={}\nkeyboard_next={}\n",c.keyboard_previous,c.keyboard_next);
     let _=write!(t,"previous_binding={}\nnext_binding={}\n",c.previous_binding,c.next_binding);
@@ -321,6 +324,9 @@ pub extern "C" fn forge_onImGuiRender(){
         imgui::checkbox(locales::EXTRA[c.language].deco,&mut c.deco_enabled);
         imgui::checkbox(armor_labels[c.language],&mut c.armor_enabled);
         imgui::checkbox(locales::EXTRA[c.language].change,&mut c.change_enabled);
+        let logging_labels=[c"로그 기록 활성화",c"Enable logging",c"ログ記録を有効化",c"启用日志记录",c"啟用日誌記錄",c"Protokollierung aktivieren",c"Activer les journaux",c"Abilita registrazione log",c"Activar registro"];
+        imgui::checkbox(logging_labels[c.language],&mut c.logging);
+        logging::set(c.logging);
         imgui::tree_pop();
         }
         if imgui::tree_node(categories[1][c.language]){
@@ -381,6 +387,7 @@ pub extern "C" fn forge_onImGuiRender(){
         }
         let ui=&locales::UI[c.language];
         match status{1=>imgui::text(ui.saved),2=>imgui::text(ui.failed),3=>imgui::text(locales::ACTIONS[c.language].reset_done),_=>{}}
+        logging::set(c.logging);
         language::select(c.language);
         STATE.with(|s|{s.config=c;s.preview=preview;s.preview_id=p;s.status=status;});
         if pushed{imgui::pop_font();}

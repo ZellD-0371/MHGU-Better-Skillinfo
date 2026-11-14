@@ -13,8 +13,8 @@
   },
   "all_language_bytes": 321062,
   "font_original_bytes": 16433112,
-  "font_subset_bytes": 960368,
-  "glyph_codepoints": 2078,
+  "font_subset_bytes": 961440,
+  "glyph_codepoints": 2079,
   "font_missing_required": 0,
   "language_sha256": {
     "de.bin": "34c5d35606d07cd82e44aaf175d431de9207ccb081df28deb3f680131e96ef1d",
