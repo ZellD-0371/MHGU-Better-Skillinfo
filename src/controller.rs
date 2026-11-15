@@ -1,4 +1,4 @@
-//! Filter the game's five nn::hid imports, leaving Forge and host input untouched.
+//! Physical binding detection plus post-remapping engine menu ownership.
 use core::{ptr,sync::atomic::{AtomicU32,Ordering}};
 use crate::{STATE,content,navigation::{L3,Navigation}};
 const PLT:[u32;5]=[0x13f0af0,0x13f0afc,0x13f0b08,0x13f0b14,0x13f0b20];
@@ -8,6 +8,32 @@ const GOT:[u32;5]=[0x1838494,0x1838498,0x183849c,0x18384a0,0x18384a4];
 #[unsafe(no_mangle)]
 pub static better_skillinfo_input_audit:[AtomicU32;9]=[const{AtomicU32::new(0)};9];
 static ORIGINAL:[AtomicU32;5]=[const{AtomicU32::new(0)};5];
+static MENU_OWNED:AtomicU32=AtomicU32::new(0);
+static mut MENU_GATE:crate::menu_input::Gate=crate::menu_input::Gate::NEW;
+#[unsafe(no_mangle)]
+pub static better_skillinfo_menu_audit:[AtomicU32;4]=[const{AtomicU32::new(0)};4];
+// NSO +0x3de4f8 / runtime f_5de4f8: the same final translator as BMI.
+#[forge::hook(offset=0x3de4f8)]
+fn menu_translate(object:u32,word:u32)->u32{
+    let mapped=original!(object,word);
+    let overlay=forge::graphics::Graphics::is_menu_visible();
+    let active=STATE.with(|s|s.input_ready&&content(s,false).is_some());
+    let owned=(active&&MENU_OWNED.load(Ordering::Acquire)!=0)||crate::bindings::capturing();
+    let filtered=unsafe{(&mut *core::ptr::addr_of_mut!(MENU_GATE)).step(mapped,owned,overlay)};
+    for(i,value)in [word,mapped,filtered,owned as u32].into_iter().enumerate(){better_skillinfo_menu_audit[i].store(value,Ordering::Relaxed);}
+    filtered
+}
+// The model preview/camera reads the separate gameplay word, reconstructed by
+// Recomp independently of the menu word. Keep its release latch independent.
+static mut CAMERA_GATE:crate::menu_input::Gate=crate::menu_input::Gate::NEW;
+#[forge::hook(offset=0x3de4b0)]
+fn camera_translate(object:u32,word:u32)->u32{
+    let mapped=original!(object,word);
+    let overlay=forge::graphics::Graphics::is_menu_visible();
+    let active=STATE.with(|s|s.input_ready&&content(s,false).is_some());
+    let owned=(active&&MENU_OWNED.load(Ordering::Acquire)!=0)||crate::bindings::capturing();
+    unsafe{(&mut *core::ptr::addr_of_mut!(CAMERA_GATE)).step(mapped,owned,overlay)}
+}
 static PAGE_HELD:AtomicU32=AtomicU32::new(0);
 static PAD_RELEASE:AtomicU32=AtomicU32::new(0);
 static SHORTCUT_HELD:AtomicU32=AtomicU32::new(0);
@@ -27,9 +53,10 @@ unsafe fn filter(index:usize,state:u32,id:u32){
     if crate::bindings::capturing()&&!menu{
         // Capture mode consumes the game's state on every native poll, on any screen.
         unsafe{write(state+8,0);write(state+12,0);for offset in [16,20,24,28]{write(state+offset,0);}}
+        MENU_OWNED.store(1,Ordering::Release);
         PAGE_HELD.store(0,Ordering::Release);return
     }
-    let (captured,active,shortcut_directions)=STATE.with(|s|{
+    let (captured,active,shortcut_directions,chord_down,keyboard_down)=STATE.with(|s|{
         let selected=if menu{None}else{content(s,false)};
         let active=selected.is_some()&&s.input_ready;
         if let Some(c)=selected{if s.page_key!=c.key{s.page=0;s.page_count=1;s.page_key=c.key;}}
@@ -49,7 +76,7 @@ unsafe fn filter(index:usize,state:u32,id:u32){
         let old=PAD_RELEASE.load(Ordering::Acquire);
         captured|=old&raw;
         PAD_RELEASE.store(if active{captured}else{0},Ordering::Release);
-        (if active{captured}else{0},active,[s.config.keyboard_previous,s.config.keyboard_next].iter().fold(0u64,|mask,key|mask|match *key{crate::bindings::KEY_PREV=>1<<12,crate::bindings::KEY_NEXT=>1<<14,_=>0}))
+        (if active{captured}else{0},active,[s.config.keyboard_previous,s.config.keyboard_next].iter().fold(0u64,|mask,key|mask|match *key{crate::bindings::KEY_PREV=>1<<12,crate::bindings::KEY_NEXT=>1<<14,_=>0}),hits!=0,active&&(crate::bindings::key_down(s.config.keyboard_previous)||crate::bindings::key_down(s.config.keyboard_next)))
     });
     // Recomp maps Ctrl -> L3 and arrows -> D-pad in the SAME input snapshot.
     // Forge's keyboard cache is updated later, at render time: requiring its arrow
@@ -64,6 +91,7 @@ unsafe fn filter(index:usize,state:u32,id:u32){
         (previous&horizontal)|if modifier{horizontal}else{0}
     }else{0};
     SHORTCUT_HELD.store(keyboard_mask as u32,Ordering::Relaxed);
+    MENU_OWNED.store((active&&(chord_down||keyboard_down||keyboard_mask!=0)) as u32,Ordering::Release);
     let filtered=buttons&!(captured as u64)&!keyboard_mask;
     let delivered_x=if captured&0xf00000!=0{0}else{x};let delivered_y=if captured&0xf00000!=0{0}else{y};
     for (i,v) in [buttons as u32,x as u32,y as u32,filtered as u32,delivered_x as u32,delivered_y as u32,captured as u32,active as u32].iter().enumerate(){better_skillinfo_input_audit[i].store(*v,Ordering::Relaxed);}
@@ -79,6 +107,12 @@ unsafe extern "C" fn right(s:u32,id:u32){unsafe{filter(3,s,id)}}
 unsafe extern "C" fn handheld(s:u32,id:u32){unsafe{filter(4,s,id)}}
 
 pub fn install(base:u32)->bool{
+    let site=base+0x3de4f8;
+    let words=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
+    if !crate::menu_input::valid_entry(words,site){return false}
+    let camera_site=base+0x3de4b0;
+    let camera_words=core::array::from_fn(|i|unsafe{read(camera_site+i as u32*4)});
+    if !crate::menu_input::valid_camera_entry(camera_words,camera_site){return false}
     let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
     // Validate every slot before changing any. Existing import wrappers remain in the call chain.
     for (i,offset) in GOT.iter().enumerate(){
@@ -97,5 +131,7 @@ pub fn install(base:u32)->bool{
         ORIGINAL[i].store(address,Ordering::Release);
     }
     for (i,offset) in GOT.iter().enumerate(){unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};}
+    forge::install_hook!(base,menu_translate);
+    forge::install_hook!(base,camera_translate);
     true
 }

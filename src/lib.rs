@@ -4,6 +4,7 @@ mod navigation;
 mod bindings;
 mod pagination;
 mod controller;
+mod menu_input;
 mod panel;
 mod skin;
 mod layout;
@@ -168,7 +169,7 @@ fn main(){
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
-    if input_ready{crate::log_info!("[better-skillinfo] conditional L3 + right-stick import filters installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
+    if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
     crate::log_info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 
