@@ -52,7 +52,7 @@ Forge의 Insert 메뉴가 열리지 않으면 에뮬레이터의 키보드 전�
 | L3를 누른 채 R 스틱 왼쪽 / 오른쪽 | 이전 / 다음 페이지 |
 | Ctrl + ← / → | 이전 / 다음 페이지 |
 
-## 호환성
+## 호환되는 모드
 
 - [KatSmithy - Smithy Overhaul](https://gamebanana.com/mods/737929)
 

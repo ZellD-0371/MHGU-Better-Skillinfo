@@ -52,7 +52,7 @@ When the content exceeds the maximum panel height, it is split into multiple pag
 | Hold L3 + move the right stick left / right | Previous / next page |
 | Ctrl + ← / → | Previous / next page |
 
-## Compatibility
+## Compatible Mods
 
 - [KatSmithy - Smithy Overhaul](https://gamebanana.com/mods/737929)
 
