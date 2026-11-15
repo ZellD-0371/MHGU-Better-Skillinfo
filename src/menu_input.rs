@@ -12,6 +12,36 @@ impl Gate{
   word&!self.captured
  }
 }
+/// A late GOT re-chain can put our wrapper into its own predecessor chain.
+/// Bound recursion at the independent SDK import and remember the safe route.
+pub struct PollChain{
+ active:core::sync::atomic::AtomicU32,
+ cyclic:core::sync::atomic::AtomicU32,
+}
+impl PollChain{
+ pub const NEW:Self=Self{active:core::sync::atomic::AtomicU32::new(0),cyclic:core::sync::atomic::AtomicU32::new(0)};
+ pub fn poll(&self,index:usize,chained:impl FnOnce(),direct:impl FnOnce())->(bool,bool){
+  use core::sync::atomic::Ordering::*;
+  let bit=1u32<<index;
+  if self.active.fetch_or(bit,AcqRel)&bit!=0{
+   self.cyclic.fetch_or(bit,AcqRel);direct();return(false,false)
+  }
+  let bypass=self.cyclic.load(Acquire)&bit!=0;
+  if bypass{direct()}else{chained()}
+  self.active.fetch_and(!bit,Release);
+  (true,!bypass&&self.cyclic.load(Acquire)&bit!=0)
+ }
+}
+/// Reject self/cross-style links before installation; foreign predecessors
+/// are allowed and must remain immutable after this wrapper is published.
+pub fn valid_pad_predecessor(address:u32,resolver:u32,own:[u32;5])->bool{
+ address>=0x10000&&address&3==0&&address!=resolver&&!own.contains(&address)
+}
+/// Recomp resolves Forge imports to aligned host-call stubs; native Forge
+/// resolves them to guest executable code. Check two independent imports.
+pub fn camera_uses_forge_original(graphics:usize,file:usize,chained:bool)->bool{
+ chained||[graphics,file].iter().all(|&p|(0x03000000..0x03100000).contains(&p)&&p&15==0)
+}
 /// Permit Forge's normal chained entry, with the verified original body intact.
 pub fn valid_entry(words:[u32;4],site:u32)->bool{
  valid_signature(words,site,[0xe3a02010,0xe3a00040,0xe0022821,0xe0000821])
@@ -24,6 +54,43 @@ fn valid_signature(words:[u32;4],site:u32,original:[u32;4])->bool{
 }
 #[cfg(test)]mod tests{
  use super::*;
+ #[test]fn pad_install_rejects_self_links_and_unresolved_entries(){
+ let own=[0x3200000,0x3200010,0x3200020,0x3200030,0x3200040];
+ for p in own{assert!(!valid_pad_predecessor(p,0x15efd44,own));}
+ for p in [0,3,0x15efd44,0x3400001]{assert!(!valid_pad_predecessor(p,0x15efd44,own));}
+ assert!(valid_pad_predecessor(0x3400000,0x15efd44,own));
+ assert!(valid_pad_predecessor(0x3000100,0x15efd44,own));
+ }
+
+ #[test]fn cyclic_poll_chain_is_bounded_and_permanently_bypassed(){
+ let chain=PollChain::NEW;let sdk=core::cell::Cell::new(0);let filters=core::cell::Cell::new(0);
+ let (outer,warn)=chain.poll(0,||{
+   let (nested,_)=chain.poll(0,||panic!("recursion"),||sdk.set(sdk.get()+1));
+   if nested{filters.set(filters.get()+1)}
+ },||panic!("first call should preserve predecessor"));
+ if outer{filters.set(filters.get()+1)}
+ assert!(warn);assert_eq!(sdk.get(),1);assert_eq!(filters.get(),1);
+ for _ in 0..100{assert_eq!(chain.poll(0,||panic!("cyclic predecessor reused"),||sdk.set(sdk.get()+1)),(true,false));}
+ assert_eq!(sdk.get(),101);
+ assert_eq!(chain.poll(1,||{},||panic!("another style must keep its chain")),(true,false));
+ }
+ #[test]fn acyclic_poll_chain_keeps_predecessor_every_time(){
+ let chain=PollChain::NEW;let calls=core::cell::Cell::new(0);
+ for _ in 0..100{assert_eq!(chain.poll(0,||calls.set(calls.get()+1),||panic!("unnecessary bypass")),(true,false));}
+ assert_eq!(calls.get(),100);
+ }
+
+ #[test]fn recomp_always_uses_forge_original_not_middle_of_function(){
+ assert!(camera_uses_forge_original(0x03000100,0x03000200,false));
+ assert!(camera_uses_forge_original(0x03000100,0x03000200,true));
+ }
+ #[test]fn native_camera_keeps_relocated_prologue_and_existing_chains(){
+ for (a,b) in [(0x2400100,0x2400200),(0,0),(0x03000101,0x03000200),(0x03000100,0x03200100)]{
+ assert!(!camera_uses_forge_original(a,b,false));
+ assert!(camera_uses_forge_original(a,b,true));
+ }
+ }
+
  #[test]fn camera_signature_and_chain_are_checked(){
  let original=[0xe92d4800,0xe59f0034,0xe3a02000,0xe79fe000];
  assert!(valid_camera_entry(original,0x5de4b0));

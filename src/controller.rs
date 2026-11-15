@@ -1,5 +1,5 @@
 //! Physical binding detection plus post-remapping engine menu ownership.
-use core::{ptr,sync::atomic::{AtomicU32,Ordering}};
+use core::{ptr,sync::atomic::{AtomicU32,AtomicBool,Ordering}};
 use crate::{STATE,content,navigation::{L3,Navigation}};
 const PLT:[u32;5]=[0x13f0af0,0x13f0afc,0x13f0b08,0x13f0b14,0x13f0b20];
 const LAZY_RESOLVER:u32=0x13efd44;
@@ -7,6 +7,8 @@ const GOT:[u32;5]=[0x1838494,0x1838498,0x183849c,0x18384a0,0x18384a4];
 // Compact diagnostic snapshot: raw buttons/X/Y, delivered buttons/X/Y, capture, scope, sequence.
 #[unsafe(no_mangle)]
 pub static better_skillinfo_input_audit:[AtomicU32;9]=[const{AtomicU32::new(0)};9];
+// Once linked, never recapture a wrapper installed above us.
+static INSTALLED:AtomicBool=AtomicBool::new(false);
 static ORIGINAL:[AtomicU32;5]=[const{AtomicU32::new(0)};5];
 static MENU_OWNED:AtomicU32=AtomicU32::new(0);
 static mut MENU_GATE:crate::menu_input::Gate=crate::menu_input::Gate::NEW;
@@ -25,10 +27,25 @@ fn menu_translate(object:u32,word:u32)->u32{
 }
 // The model preview/camera reads the separate gameplay word, reconstructed by
 // Recomp independently of the menu word. Keep its release latch independent.
+// A copied `ldr r0,[pc,#0x34]` is NOT position independent. Replay the
+// displaced prologue with its original literal, then resume at the original PC.
+// Native Forge needs this replay. Recomp must instead call Forge original:
+// its dispatcher accepts function entries, not our direct jump to entry + 8.
+static CAMERA_FORGE_ORIGINAL:AtomicU32=AtomicU32::new(0);
+static mut CAMERA_LITERAL:u32=0;
+static mut CAMERA_RESUME:u32=0;
+#[unsafe(naked)]
+unsafe extern "C" fn camera_original(_object:u32,_word:u32,_literal:u32,_resume:u32)->u32{
+    // r2/r3 are scratch and are overwritten by the original body before use.
+    core::arch::naked_asm!("push {{r11, lr}}", "mov r0, r2", "bx r3");
+}
 static mut CAMERA_GATE:crate::menu_input::Gate=crate::menu_input::Gate::NEW;
 #[forge::hook(offset=0x3de4b0)]
 fn camera_translate(object:u32,word:u32)->u32{
-    let mapped=original!(object,word);
+    // Recomp originals use the host dispatcher and preserve the hook chain.
+    // Only a native, unchained original may use the relocated ARM prologue.
+    let mapped=if CAMERA_FORGE_ORIGINAL.load(Ordering::Acquire)!=0{original!(object,word)}
+        else{unsafe{camera_original(object,word,CAMERA_LITERAL,CAMERA_RESUME)}};
     let overlay=forge::graphics::Graphics::is_menu_visible();
     let active=STATE.with(|s|s.input_ready&&content(s,false).is_some());
     let owned=(active&&MENU_OWNED.load(Ordering::Acquire)!=0)||crate::bindings::capturing();
@@ -40,10 +57,32 @@ static SHORTCUT_HELD:AtomicU32=AtomicU32::new(0);
 unsafe fn read(a:u32)->u32{unsafe{ptr::read_unaligned(a as *const u32)}}
 unsafe fn write(a:u32,v:u32){unsafe{ptr::write_unaligned(a as *mut u32,v)}}
 
+// Game-GOT wrappers may be re-chained by another plugin after startup.
+// If that creates A -> B -> A, terminate at our independent SDK import and
+// permanently omit the cyclic predecessor. Ordinary acyclic chains stay intact.
+static IMPORT_CHAIN:crate::menu_input::PollChain=crate::menu_input::PollChain::NEW;
+unsafe extern "C"{
+ #[link_name="_ZN2nn3hid12GetNpadStateEPNS0_16NpadFullKeyStateERKj"] fn sdk_full(state:u32,id:u32);
+ #[link_name="_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyDualStateERKj"] fn sdk_dual(state:u32,id:u32);
+ #[link_name="_ZN2nn3hid12GetNpadStateEPNS0_16NpadJoyLeftStateERKj"] fn sdk_left(state:u32,id:u32);
+ #[link_name="_ZN2nn3hid12GetNpadStateEPNS0_17NpadJoyRightStateERKj"] fn sdk_right(state:u32,id:u32);
+ #[link_name="_ZN2nn3hid12GetNpadStateEPNS0_17NpadHandheldStateERKj"] fn sdk_handheld(state:u32,id:u32);
+}
+unsafe fn sdk_poll(index:usize,state:u32,id:u32){
+ let polls:[unsafe extern "C" fn(u32,u32);5]=[sdk_full,sdk_dual,sdk_left,sdk_right,sdk_handheld];
+ unsafe{polls[index](state,id)};
+}
 unsafe fn filter(index:usize,state:u32,id:u32){
-    let original=ORIGINAL[index].load(Ordering::Acquire);
-    let call:unsafe extern "C" fn(u32,u32)=unsafe{core::mem::transmute(original)};
-    unsafe{call(state,id)};
+    let (outer,cycle_detected)=IMPORT_CHAIN.poll(index,||{
+        let original=ORIGINAL[index].load(Ordering::Acquire);
+        let call:unsafe extern "C" fn(u32,u32)=unsafe{core::mem::transmute(original)};
+        unsafe{call(state,id)};
+    },||unsafe{sdk_poll(index,state,id)});
+    // Only the outer invocation applies bindings and consumes game input.
+    if !outer{return}
+    if cycle_detected{
+        forge::log::prelude::warn!("[better-skillinfo] cyclic pad import {} detected; independent SDK polling enabled",index);
+    }
     if state<0x10000||unsafe{read(state+32)}&1==0{return}
     let buttons=unsafe{read(state+8)} as u64|((unsafe{read(state+12)} as u64)<<32);
     let x=unsafe{read(state+24)} as i32;let y=unsafe{read(state+28)} as i32;
@@ -107,14 +146,29 @@ unsafe extern "C" fn right(s:u32,id:u32){unsafe{filter(3,s,id)}}
 unsafe extern "C" fn handheld(s:u32,id:u32){unsafe{filter(4,s,id)}}
 
 pub fn install(base:u32)->bool{
+    if INSTALLED.load(Ordering::Acquire){return true}
     let site=base+0x3de4f8;
     let words=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
     if !crate::menu_input::valid_entry(words,site){return false}
     let camera_site=base+0x3de4b0;
     let camera_words=core::array::from_fn(|i|unsafe{read(camera_site+i as u32*4)});
     if !crate::menu_input::valid_camera_entry(camera_words,camera_site){return false}
+    unsafe{
+        CAMERA_LITERAL=read(base+0x3de4f0);
+        CAMERA_RESUME=camera_site+8;
+    }
+    unsafe extern "C"{fn forge_graphics_isMenuVisible()->bool;}
+    let forge_original=crate::menu_input::camera_uses_forge_original(
+        forge_graphics_isMenuVisible as *const () as usize,
+        forge::sys::imgui::igImFileOpen as *const () as usize,
+        camera_words[0]==0xe51ff004,
+    );
+    CAMERA_FORGE_ORIGINAL.store(forge_original as u32,Ordering::Release);
     let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
-    // Validate every slot before changing any. Existing import wrappers remain in the call chain.
+    // Take a complete snapshot before publishing any predecessor. A rejected
+    // later slot must not partially replace an existing chain.
+    let mut predecessors=[0u32;5];
+    // Existing import wrappers remain in the call chain.
     for (i,offset) in GOT.iter().enumerate(){
         let mut address=unsafe{read(base+offset)};
         if address==base+LAZY_RESOLVER{
@@ -127,11 +181,17 @@ pub fn install(base:u32)->bool{
             unsafe{bind(&mut state,&port)};
             address=unsafe{read(base+offset)};
         }
-        if address<0x10000||address&3!=0||address==base+LAZY_RESOLVER{return false}
-        ORIGINAL[i].store(address,Ordering::Release);
+        if !crate::menu_input::valid_pad_predecessor(address,base+LAZY_RESOLVER,
+            detours.map(|p|p as u32)){return false}
+        predecessors[i]=address;
     }
+    // If another installer changed a slot during lazy resolution, retry later
+    // rather than overwrite that newer connection with a stale snapshot.
+    if GOT.iter().enumerate().any(|(i,offset)|unsafe{read(base+offset)}!=predecessors[i]){return false}
+    for(i,address)in predecessors.into_iter().enumerate(){ORIGINAL[i].store(address,Ordering::Release);}
     for (i,offset) in GOT.iter().enumerate(){unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};}
     forge::install_hook!(base,menu_translate);
     forge::install_hook!(base,camera_translate);
+    INSTALLED.store(true,Ordering::Release);
     true
 }
