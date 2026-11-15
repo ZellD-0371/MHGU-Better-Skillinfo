@@ -1,7 +1,6 @@
 //! Physical binding detection plus post-remapping engine menu ownership.
 use core::{ptr,sync::atomic::{AtomicU32,AtomicBool,Ordering}};
 use crate::{STATE,content,navigation::{L3,Navigation}};
-const PLT:[u32;5]=[0x13f0af0,0x13f0afc,0x13f0b08,0x13f0b14,0x13f0b20];
 const LAZY_RESOLVER:u32=0x13efd44;
 const GOT:[u32;5]=[0x1838494,0x1838498,0x183849c,0x18384a0,0x18384a4];
 // Compact diagnostic snapshot: raw buttons/X/Y, delivered buttons/X/Y, capture, scope, sequence.
@@ -146,7 +145,7 @@ unsafe extern "C" fn right(s:u32,id:u32){unsafe{filter(3,s,id)}}
 unsafe extern "C" fn handheld(s:u32,id:u32){unsafe{filter(4,s,id)}}
 
 pub fn install(base:u32)->bool{
-    if INSTALLED.load(Ordering::Acquire){return true}
+    if INSTALLED.load(Ordering::Acquire){return refresh_pending(base)}
     let site=base+0x3de4f8;
     let words=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
     if !crate::menu_input::valid_entry(words,site){return false}
@@ -164,34 +163,24 @@ pub fn install(base:u32)->bool{
         camera_words[0]==0xe51ff004,
     );
     CAMERA_FORGE_ORIGINAL.store(forge_original as u32,Ordering::Release);
-    let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
-    // Take a complete snapshot before publishing any predecessor. A rejected
-    // later slot must not partially replace an existing chain.
-    let mut predecessors=[0u32;5];
-    // Existing import wrappers remain in the call chain.
-    for (i,offset) in GOT.iter().enumerate(){
-        let mut address=unsafe{read(base+offset)};
-        if address==base+LAZY_RESOLVER{
-            // Bind through the real PLT entry, which supplies the resolver's r12.
-            // Calling/storing the shared resolver stub as a function pointer is
-            // invalid, and later binding would overwrite our GOT filter.
-            #[repr(C,align(8))] struct NpadState([u8;40]);
-            let mut state=NpadState([0;40]);let port=0u32;
-            let bind:unsafe extern "C" fn(*mut NpadState,*const u32)=unsafe{core::mem::transmute(base+PLT[i])};
-            unsafe{bind(&mut state,&port)};
-            address=unsafe{read(base+offset)};
-        }
-        if !crate::menu_input::valid_pad_predecessor(address,base+LAZY_RESOLVER,
-            detours.map(|p|p as u32)){return false}
-        predecessors[i]=address;
-    }
-    // If another installer changed a slot during lazy resolution, retry later
-    // rather than overwrite that newer connection with a stale snapshot.
-    if GOT.iter().enumerate().any(|(i,offset)|unsafe{read(base+offset)}!=predecessors[i]){return false}
-    for(i,address)in predecessors.into_iter().enumerate(){ORIGINAL[i].store(address,Ordering::Release);}
-    for (i,offset) in GOT.iter().enumerate(){unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};}
     forge::install_hook!(base,menu_translate);
     forge::install_hook!(base,camera_translate);
     INSTALLED.store(true,Ordering::Release);
-    true
+    refresh_pending(base)
+}
+
+/// Native SDK imports bind lazily and unsupported controller styles may never
+/// resolve. Attach each style once when it becomes available; never re-chain a
+/// slot that another mod subsequently wraps above us.
+pub fn refresh_pending(base:u32)->bool{
+ if !INSTALLED.load(Ordering::Acquire){return false}
+ let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
+ for(i,offset)in GOT.iter().enumerate(){
+  if ORIGINAL[i].load(Ordering::Acquire)!=0{continue}
+  let address=unsafe{read(base+offset)};
+  if !crate::menu_input::valid_pad_predecessor(address,base+LAZY_RESOLVER,detours.map(|p|p as u32)){continue}
+  ORIGINAL[i].store(address,Ordering::Release);
+  unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};
+ }
+ ORIGINAL.iter().any(|a|a.load(Ordering::Acquire)!=0)
 }

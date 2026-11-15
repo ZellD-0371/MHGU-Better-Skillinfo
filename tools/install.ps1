@@ -1,14 +1,21 @@
 param([Parameter(Mandatory=$true)][string]$GameRoot)
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
-$source = Join-Path $project 'dist/Better_Skillinfo'
+$source = Join-Path $project 'dist/Better-Skillinfo'
 $manifest = Get-Content -LiteralPath (Join-Path $project 'dist/manifest_sha256.json') -Raw | ConvertFrom-Json
 if (Get-Process -Name mhgurecomp -ErrorAction SilentlyContinue) { throw '게임을 저장하고 종료한 뒤 설치하세요.' }
 foreach ($entry in $manifest.PSObject.Properties) {
     $hash = (Get-FileHash -LiteralPath (Join-Path $source $entry.Name) -Algorithm SHA256).Hash
     if ($hash -ne $entry.Value) { throw "배포 파일 해시 불일치: $($entry.Name)" }
 }
-$destination = Join-Path $GameRoot 'mods/Better_Skillinfo'
+$mods = [IO.Path]::GetFullPath((Join-Path $GameRoot 'mods'))
+$destination = Join-Path $mods 'Better-Skillinfo'
+$legacy = Join-Path $mods 'Better_Skillinfo'
+if (Test-Path -LiteralPath $legacy) {
+    if (Test-Path -LiteralPath $destination) { throw 'Better-Skillinfo와 Better_Skillinfo 폴더가 모두 존재합니다. 중복 설치를 정리하세요.' }
+    if ((Split-Path -Parent ([IO.Path]::GetFullPath($legacy))) -ne $mods -or (Split-Path -Parent ([IO.Path]::GetFullPath($destination))) -ne $mods) { throw '모드 폴더 경로 검증 실패' }
+    Move-Item -LiteralPath $legacy -Destination $destination
+}
 foreach ($entry in $manifest.PSObject.Properties) {
     $target = Join-Path $destination $entry.Name
     New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
@@ -17,7 +24,7 @@ foreach ($entry in $manifest.PSObject.Properties) {
 }
 $order = Join-Path $GameRoot 'mods/load_order.txt'
 if (Test-Path -LiteralPath $order) {
-    $lines = @(Get-Content -LiteralPath $order | Where-Object { $_ -notin @('Better_Skillinfo','# off: Better_Skillinfo') })
-    @($lines) + 'Better_Skillinfo' | Set-Content -LiteralPath $order -Encoding utf8
+    $lines = @(Get-Content -LiteralPath $order | Where-Object { $_ -notin @('Better_Skillinfo','# off: Better_Skillinfo','Better-Skillinfo','# off: Better-Skillinfo') })
+    @($lines) + 'Better-Skillinfo' | Set-Content -LiteralPath $order -Encoding utf8
 }
 Write-Output "설치 및 해시 검증 완료: $destination"

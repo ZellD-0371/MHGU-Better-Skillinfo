@@ -1,7 +1,9 @@
 """Package the MHGU Forge skill information overlay without game asset replacements."""
-import hashlib,json,pathlib,shutil,zipfile
+import hashlib,json,pathlib,shutil,zipfile,tomllib
 PROJECT=pathlib.Path(__file__).resolve().parents[1]
-OUT=PROJECT/'dist/Better_Skillinfo'
+OUT=PROJECT/'dist/Better-Skillinfo'
+VERSION=tomllib.loads((PROJECT/'Cargo.toml').read_text())['package']['version']
+ARCHIVE=PROJECT/'dist'/f'Better-Skillinfo_v{VERSION}.zip'
 files={
     'romfs/nativeNX/plugins/better_skillinfo.nro':PROJECT/'better_skillinfo.nro',
     'romfs/nativeNX/plugins/better-skillinfo/BetterSkillinfo-Subset.otf':PROJECT/'assets/BetterSkillinfo-Subset.otf',
@@ -16,6 +18,6 @@ for name,src in files.items():
     shutil.copy2(src,dest)
     manifest[name]=hashlib.sha256(dest.read_bytes()).hexdigest()
 (PROJECT/'dist/manifest_sha256.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
-with zipfile.ZipFile(PROJECT/'Better-Skillinfo.zip','w',zipfile.ZIP_DEFLATED) as archive:
+with zipfile.ZipFile(ARCHIVE,'w',zipfile.ZIP_DEFLATED) as archive:
     for name in files:archive.write(OUT/name,'Better-Skillinfo/'+name)
-print(json.dumps({'files':len(files),'archive_bytes':(PROJECT/'Better-Skillinfo.zip').stat().st_size}))
+print(json.dumps({'files':len(files),'archive_bytes':ARCHIVE.stat().st_size}))

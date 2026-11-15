@@ -5,6 +5,8 @@ mod bindings;
 mod pagination;
 mod controller;
 mod menu_input;
+mod katsmithy;
+mod katsmithy_model;
 mod panel;
 mod skin;
 mod layout;
@@ -169,12 +171,12 @@ fn main(){
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
-    if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}else{error!("[better-skillinfo] controller paging unavailable: input imports rejected");}
+    if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}else{error!("[better-skillinfo] controller paging awaiting compatible input hooks/imports");}
     crate::log_info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn forge_onUpdate(_dt:f32){let base=STATE.with(|s|{s.frame=s.frame.wrapping_add(1);s.base});sound::update(base);}
+pub extern "C" fn forge_onUpdate(_dt:f32){let base=STATE.with(|s|{s.frame=s.frame.wrapping_add(1);s.base});let ready=controller::refresh_pending(base);STATE.with(|s|s.input_ready=ready);katsmithy::update(base);sound::update(base);}
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiInit(_ctx:*mut c_void,_alloc:*mut c_void,_free:*mut c_void){
     let f=imgui::ImFont::load(c"app:/nativeNX/plugins/better-skillinfo/BetterSkillinfo-Subset.otf");
@@ -200,6 +202,7 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
         let count=s.preview_id.clamp(1,8) as usize;
         return Some(Content{points:[(0,1);32],compared:[None;32],total_before:[None;32],total_after:[None;32],count,key:0x5052455600000000|count as u64|if s.preview_center{1<<16}else{0},preview:true,center:s.preview_center,incompatible:false,projection:Projection::Calculated})
     }
+    if let Some(result)=katsmithy::content(s){return result}
     if sockets::active(s){return sockets::content(s)}
     let live=|a:&&Armor|a.owner>=0x10000&&unsafe{rd(a.owner)==s.base+0x176e344&&byte(a.owner+0x18)!=0};
     // Relocation and the equipment-details menu only inspect existing items.
