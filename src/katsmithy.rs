@@ -9,14 +9,14 @@ static MODULE_SIZE:AtomicU32=AtomicU32::new(0);
 static WINDOW:AtomicU32=AtomicU32::new(0);
 static INITIAL0:AtomicU32=AtomicU32::new(0);
 static INITIAL1:AtomicU32=AtomicU32::new(0);
-const MODE_OFFSET:u32=0x1e4a40;
-// KatSmithy's own filtered set list. Unlike the native cursor, this also tracks
-// pieces that cannot currently be crafted. Verified against locked torso and
-// craftable arms of the same set (series 33).
-const SET_IDS:u32=0x1e2664;
-const SET_COUNT:u32=0x1e308c;
-const SET_ROW:u32=0x1e3090;
-const SET_PIECE:u32=0x1e3094;
+// KatSmithy's own filtered set list (katsmithy_model::cursor). Unlike the native
+// cursor it also tracks pieces that cannot currently be crafted. Its address moves
+// between KatSmithy builds, so it is found by shape inside KatSmithy's data segment.
+static DATA:AtomicU32=AtomicU32::new(0);
+static DATA_END:AtomicU32=AtomicU32::new(0);
+static LIST:AtomicU32=AtomicU32::new(0);
+static SEARCHED:AtomicU32=AtomicU32::new(0);
+static SEARCH_FAILED:AtomicBool=AtomicBool::new(false);
 const ARMOR:&[u8]=include_bytes!("../assets/armor-skills.bin");
 #[repr(C)]#[derive(Default)]
 struct Map{base:u64,size:u64,kind:u32,attr:u32,perm:u32,ipc:u32,device:u32,pad:u32}
@@ -49,8 +49,11 @@ pub fn discover_once(){
     if let Some(total)=total{if !(base..base.saturating_add(total)).contains(&own)&&len<=16*1024*1024&&len>=32{
      if let Some(start)=base.checked_add(ro){if readable(start,len){
       let bytes=unsafe{core::slice::from_raw_parts(start as *const u8,len as usize)};
-      if MODULE.load(Ordering::Acquire)==0&&crate::katsmithy_model::identifies(bytes)&&MODE_OFFSET.checked_add(4).is_some_and(|n|n<=total)&&readable(base+MODE_OFFSET,4){
-       MODULE_SIZE.store(total,Ordering::Release);MODULE.store(base,Ordering::Release);crate::log_info!("[better-skillinfo] KatSmithy detected at {:08X}",base);
+      let data=unsafe{word(base+0x30)};
+      if MODULE.load(Ordering::Acquire)==0&&crate::katsmithy_model::identifies(bytes)&&data<total&&readable(base+data,total-data){
+       DATA.store(base+data,Ordering::Release);DATA_END.store(base+total,Ordering::Release);
+       MODULE_SIZE.store(total,Ordering::Release);MODULE.store(base,Ordering::Release);
+       crate::log_info!("[better-skillinfo] KatSmithy detected at {:08X} (size {:X})",base,total);
       }
      }}
      // Wishlist publishes its detail-page view in its data segment.
@@ -127,7 +130,7 @@ pub fn update(base:u32){
  let size=MODULE_SIZE.load(Ordering::Acquire);
  let chained=crate::katsmithy_model::needs_chain_proof(initial,entry,module,size)&&kat_chained(base,module,size);
  if !crate::katsmithy_model::kat_hook_ready(initial,entry,module,size,chained){
-  forge::log::prelude::warn!("[better-skillinfo] KatSmithy smithy hook inactive (first {:08X} {:08X}, now {:08X} {:08X}); native skill UI retained",initial[0],initial[1],entry[0],entry[1]);return
+  forge::log::prelude::error!("[better-skillinfo] KatSmithy smithy hook inactive (first {:08X} {:08X}, now {:08X} {:08X}); native skill UI retained",initial[0],initial[1],entry[0],entry[1]);return
  }
  if !(entry[1]>=module&&entry[1]-module<MODULE_SIZE.load(Ordering::Acquire)){
   crate::log_info!("[better-skillinfo] KatSmithy smithy hook chained by another plugin ({:08X}); observer linked on top",entry[1]);
@@ -135,6 +138,36 @@ pub fn update(base:u32){
  forge::install_hook!(base,smithy_update);
  ACTIVE.store(true,Ordering::Release);
  crate::log_info!("[better-skillinfo] KatSmithy observer linked after its initialization");
+}
+fn span(at:u32)->Option<&'static [u8]>{
+ let (data,end)=(DATA.load(Ordering::Acquire),DATA_END.load(Ordering::Acquire));
+ let size=crate::katsmithy_model::SPAN as u32;
+ (at>=data&&at.checked_add(size).is_some_and(|e|e<=end)).then(||unsafe{core::slice::from_raw_parts(at as *const u8,size as usize)})
+}
+/// KatSmithy's current selection. The list address is cached; the known builds'
+/// offsets are tried for free, and an unknown build gets a full search of its data
+/// segment, at most once every ~10 s while its armor forge is open.
+fn selection(module:u32,frame:u32)->Option<crate::katsmithy_model::Cursor>{
+ use crate::katsmithy_model as m;
+ // Once found, the list stays put for the session: a momentarily empty list
+ // (rebuilt on a rank change) must not send the search to another table.
+ let cached=LIST.load(Ordering::Acquire);
+ if cached!=0{return span(cached).and_then(m::cursor)}
+ for offset in m::KNOWN{
+  let at=module+offset;
+  if let Some(b)=span(at){if m::plausible(b).is_some(){LIST.store(at,Ordering::Release);return m::cursor(b)}}
+ }
+ let last=SEARCHED.load(Ordering::Acquire);
+ if last!=0&&frame.wrapping_sub(last)<600{return None}
+ SEARCHED.store(frame|1,Ordering::Release);
+ let (data,end)=(DATA.load(Ordering::Acquire),DATA_END.load(Ordering::Acquire));
+ if data==0||end<=data{return None}
+ let bytes=unsafe{core::slice::from_raw_parts(data as *const u8,(end-data) as usize)};
+ match m::find(bytes){
+  Some(at)=>{let at=data+at as u32;LIST.store(at,Ordering::Release);SEARCH_FAILED.store(false,Ordering::Release);
+   crate::log_info!("[better-skillinfo] KatSmithy armor list found at +{:X}",at-module);span(at).and_then(m::cursor)}
+  None=>{if !SEARCH_FAILED.swap(true,Ordering::AcqRel){forge::log::prelude::error!("[better-skillinfo] KatSmithy armor list not found in this KatSmithy build");}None}
+ }
 }
 /// Outer None means a different screen; Some(None) hides the native fallback
 /// while KatSmithy is showing the ordinary armor status instead of skills.
@@ -146,14 +179,19 @@ pub fn content(s:&State)->Option<Option<Content>>{
  // operations. It must not supply the displayed series/part for KatSmithy.
  let native_kind=unsafe{half(w+0x5c)};
  if !(1..=5).contains(&native_kind){return None}
- if !s.config.armor_enabled||unsafe{word(module+MODE_OFFSET)}!=1{return Some(None)}
- let count=unsafe{word(module+SET_COUNT)};let row=unsafe{word(module+SET_ROW)};
- let piece=unsafe{word(module+SET_PIECE)};
- if !crate::katsmithy_model::valid_cursor(count,row,piece){return Some(None)}
- let id=unsafe{half(module+SET_IDS+row*2)};let kind=(piece+1) as u16;
- if id==0{return Some(None)}
- let (points,count)=armor_points(id,kind);
+ if !s.config.armor_enabled{return Some(None)}
+ let Some(c)=selection(module,s.frame) else{return Some(None)};
+ if !c.skills{return Some(None)}
+ // The full-set cell shows the sum of the set's five pieces.
+ let (points,count,kind)=if c.set{
+  let mut sum=[(0u16,0i32);32];let mut n=0;
+  for kind in 1..=5{let (p,k)=armor_points(c.id,kind);for &(tree,value) in &p[..k]{crate::equipment_skills::add(&mut sum,&mut n,tree,value);}}
+  // Pieces can cancel a skill out; a zero total is not a set skill.
+  let mut points=[(0u16,0i32);32];let mut count=0;
+  for &(tree,value) in &sum[..n]{if value!=0{points[count]=(tree,value);count+=1;}}
+  (points,count,6u16)
+ }else{let kind=(c.piece+1) as u16;let (p,n)=armor_points(c.id,kind);(p,n,kind)};
  if count==0{return Some(None)}
  Some(Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count,
- key:0x4b53000000000000|((kind as u64)<<16)|id as u64,preview:false,center:false,incompatible:false,projection:Projection::ProductionEquipment}))
+ key:0x4b53000000000000|((kind as u64)<<16)|c.id as u64,preview:false,center:false,incompatible:false,projection:Projection::ProductionEquipment}))
 }

@@ -2,23 +2,6 @@
 use forge::{imgui::DrawList,sys::imgui::{self as sys,ImVec2}};
 mod art { include!("skin_generated.rs"); }
 
-pub fn begin() {
-    let d=DrawList::window().raw();
-    unsafe { sys::ImDrawList_ChannelsSplit(d,2); sys::ImDrawList_ChannelsSetCurrent(d,1); }
-}
-
-pub fn end(scale:f32,opacity:f32) {
-    let d=DrawList::window();
-    unsafe {
-        sys::ImDrawList_ChannelsSetCurrent(d.raw(),0);
-        sys::ImDrawList_PushClipRectFullScreen(d.raw());
-        let p=sys::igGetWindowPos();let size=sys::igGetWindowSize();
-        paint(d,p.x,p.y,size.x,size.y,scale,opacity);
-        sys::ImDrawList_PopClipRect(d.raw());
-        sys::ImDrawList_ChannelsMerge(d.raw());
-    }
-}
-
 /// The frame and fill at an explicit box, on any draw list (window or foreground).
 pub fn paint(d:DrawList,x:f32,y:f32,w:f32,h:f32,scale:f32,opacity:f32) {
     unsafe {

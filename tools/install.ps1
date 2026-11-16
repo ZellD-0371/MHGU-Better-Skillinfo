@@ -22,9 +22,21 @@ foreach ($entry in $manifest.PSObject.Properties) {
     Copy-Item -LiteralPath (Join-Path $source $entry.Name) -Destination $target -Force
     if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -ne $entry.Value) { throw "설치 검증 실패: $target" }
 }
+# The user's load order stays as it is. Only the old folder name is renamed in place
+# (keeping its position and on/off state). An unlisted folder loads after the listed
+# ones, so a first install needs no line at all.
 $order = Join-Path $GameRoot 'mods/load_order.txt'
 if (Test-Path -LiteralPath $order) {
-    $lines = @(Get-Content -LiteralPath $order | Where-Object { $_ -notin @('Better_Skillinfo','# off: Better_Skillinfo','Better-Skillinfo','# off: Better-Skillinfo') })
-    @($lines) + 'Better-Skillinfo' | Set-Content -LiteralPath $order -Encoding utf8
+    $utf8 = New-Object System.Text.UTF8Encoding($false)
+    $lines = [IO.File]::ReadAllLines($order, $utf8)
+    $current = @($lines | Where-Object { $_ -in @('Better-Skillinfo','# off: Better-Skillinfo') }).Count -gt 0
+    $changed = $false
+    $result = foreach ($line in $lines) {
+        if ($line -in @('Better_Skillinfo','# off: Better_Skillinfo')) {
+            $changed = $true
+            if (-not $current) { $current = $true; $line -replace 'Better_Skillinfo$','Better-Skillinfo' }
+        } else { $line }
+    }
+    if ($changed) { [IO.File]::WriteAllLines($order, [string[]]@($result), $utf8) }
 }
 Write-Output "설치 및 해시 검증 완료: $destination"

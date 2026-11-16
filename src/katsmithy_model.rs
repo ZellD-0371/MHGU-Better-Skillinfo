@@ -2,10 +2,8 @@ pub fn identifies(ro:&[u8])->bool{
  [b"[KatSmithy]".as_slice(),b"katsmithy.ini".as_slice(),b"Skill points by piece".as_slice()]
  .iter().all(|s|ro.windows(s.len()).any(|w|w==*s))
 }
-pub fn in_armor_list(screen:u32,kind:u16,id:u16)->bool{screen==3&&(1..=5).contains(&kind)&&id!=0}
 #[cfg(test)]mod tests{
  use super::*;
- #[test]fn ordinary_and_other_menus_are_excluded(){assert!(!in_armor_list(1,1,3));assert!(!in_armor_list(3,6,3));assert!(!in_armor_list(3,1,0));assert!(in_armor_list(3,2,4));}
  #[test]fn module_identity_requires_all_markers(){assert!(identifies(b"[KatSmithy] katsmithy.ini Skill points by piece"));assert!(!identifies(b"[KatSmithy]"));assert!(!identifies(b"katsmithy.ini"));}
 }
 
@@ -67,14 +65,85 @@ pub fn kat_trampoline(words:[u32;4],jump_back:u32,module:u32,size:u32)->bool{
  #[test]fn missing_module_is_rejected(){assert!(!kat_hook_ready(SMITHY_ENTRY,[FORGE_JUMP,0x3479964],0,SIZE,true));}
 }
 
-/// Bound all indices before reading the optional module's set-ID array.
-pub fn valid_cursor(count:u32,row:u32,piece:u32)->bool{count>0&&count<=1024&&row<count&&piece<5}
+/// KatSmithy's filtered armor list, as byte offsets from its set-ID array (u16[0x514]).
+/// The array moves between KatSmithy builds (+0x1E2664 -> +0x1F78C4); these distances
+/// stayed the same, so finding the array locates everything else.
+pub const CAPACITY:u32=0x514;
+pub const COUNT:usize=0xa28;pub const ROW:usize=0xa2c;pub const PIECE:usize=0xa30;
+/// 1 while KatSmithy shows the skill page (Y), 0 on the ordinary armor status.
+pub const MODE:usize=0x23dc;
+/// 1 while the cursor is on the set's full-set cell instead of one piece.
+pub const SET_CELL:usize=0x23e0;
+pub const SPAN:usize=0x23e4;
+/// Module offsets of the builds seen so far: tried before any search.
+pub const KNOWN:[u32;2]=[0x1e2664,0x1f78c4];
+#[derive(Clone,Copy,Debug,PartialEq)]
+pub struct Cursor{pub row:u32,pub piece:u32,pub skills:bool,pub set:bool,pub id:u16}
+fn w32(b:&[u8],o:usize)->u32{u32::from_le_bytes([b[o],b[o+1],b[o+2],b[o+3]])}
+fn w16(b:&[u8],o:usize)->u16{u16::from_le_bytes([b[o],b[o+1]])}
+/// Per-frame check of the list at `b` (SPAN bytes from the ID array).
+pub fn cursor(b:&[u8])->Option<Cursor>{
+ if b.len()<SPAN{return None}
+ let (count,row,piece,mode,set)=(w32(b,COUNT),w32(b,ROW),w32(b,PIECE),w32(b,MODE),w32(b,SET_CELL));
+ if !(1..=CAPACITY).contains(&count)||row>=count||piece>=5||mode>1||set>1{return None}
+ let id=w16(b,row as usize*2);
+ if id==0||id>2000{return None}
+ Some(Cursor{row,piece,skills:mode==1,set:set==1,id})
+}
+/// Search-time check: every listed entry is a distinct plausible armor series ID.
+pub fn plausible(b:&[u8])->Option<u32>{
+ cursor(b)?;let count=w32(b,COUNT);let mut seen=[0u64;32];
+ for n in 0..count as usize{
+  let id=w16(b,n*2) as usize;if id==0||id>2000{return None}
+  let (word,bit)=(id/64,1u64<<(id%64));if seen[word]&bit!=0{return None}seen[word]|=bit;
+ }
+ Some(count)
+}
+/// A forge list is never this short (low rank alone lists 87 sets for one style);
+/// short tables elsewhere in KatSmithy can look like one.
+pub const MIN_LIST:u32=8;
+/// Offset of KatSmithy's list in its data segment: the longest plausible list.
+pub fn find(data:&[u8])->Option<usize>{
+ let mut best:Option<(usize,u32)>=None;let mut i=0;
+ while i+SPAN<=data.len(){
+  let c=w32(data,i+COUNT);
+  if (1..=CAPACITY).contains(&c)&&w32(data,i+ROW)<c&&w32(data,i+PIECE)<5{
+   if let Some(n)=plausible(&data[i..i+SPAN]).filter(|&n|n>=MIN_LIST){if best.is_none_or(|b|n>b.1){best=Some((i,n));}}
+  }
+  i+=4;
+ }
+ best.map(|b|b.0)
+}
 #[cfg(test)]mod cursor_tests{
  use super::*;
- #[test]fn locked_torso_and_craftable_arms_keep_same_set(){
- assert!(valid_cursor(87,18,1));assert!(valid_cursor(87,18,2));
- let ids=[31u16,33,37];assert_eq!(ids[1],33);
- // The native cursor was stale on 31; it is deliberately not an input here.
+ extern crate std;use std::vec::Vec;
+ fn list(ids:&[u16],row:u32,piece:u32,mode:u32,set:u32)->Vec<u8>{
+  let mut b=std::vec![0u8;SPAN];for (n,id) in ids.iter().enumerate(){b[n*2..n*2+2].copy_from_slice(&id.to_le_bytes());}
+  for (o,v) in [(COUNT,ids.len() as u32),(ROW,row),(PIECE,piece),(MODE,mode),(SET_CELL,set)]{b[o..o+4].copy_from_slice(&v.to_le_bytes());}b
  }
- #[test]fn invalid_module_cursors_are_rejected(){for c in [(0,0,0),(1025,0,0),(87,87,1),(87,u32::MAX,1),(87,18,5)]{assert!(!valid_cursor(c.0,c.1,c.2));}}
+ #[test]fn locked_torso_reads_kat_selection(){assert_eq!(cursor(&list(&[31,33,37],1,1,1,0)),Some(Cursor{row:1,piece:1,skills:true,set:false,id:33}));}
+ #[test]fn set_cell_and_status_page_are_reported(){let c=cursor(&list(&[1,2,3,4,6,7,8,9,11],8,0,0,1)).unwrap();assert!(c.set&&!c.skills);assert_eq!(c.id,11);}
+ #[test]fn invalid_cursors_are_rejected(){
+  for (row,piece,mode,set) in [(3,0,1,0),(0,5,1,0),(0,0,2,0),(0,0,1,2)]{assert_eq!(cursor(&list(&[1,2,3],row,piece,mode,set)),None);}
+  assert_eq!(cursor(&list(&[1,0,3],1,0,1,0)),None);assert_eq!(cursor(&list(&[],0,0,1,0)),None);
+ }
+ #[test]fn duplicate_ids_are_not_a_list(){assert_eq!(plausible(&list(&[1,2,2],0,0,1,0)),None);assert_eq!(plausible(&list(&[1,2,3],0,0,1,0)),Some(3));}
+ #[test]fn longest_plausible_list_wins(){
+  let mut data=std::vec![0u8;0x100];data.extend(list(&[774,1280,517],0,0,0,0));
+  assert_eq!(find(&data),None,"a three-entry table is not a forge list");
+  let at=data.len();data.extend(list(&[1,2,3,4,6,7,8,9,11],8,0,1,0));data.extend(std::vec![0u8;0x40]);
+  assert_eq!(find(&data),Some(at));
+ }
+ /// Memory dumps of both KatSmithy builds (data segment from its start), when present.
+ #[test]fn dumps_of_both_builds(){
+  for (file,data,want,row,piece,skills,set) in [
+   ("target/katsmithy_vespoid_arms_module.bin",0x1c3000usize,0x1e2664usize,18,2,true,false),
+   ("target/katsmithy_r2_set_status.bin",0x1d8000,0x1f78c4,8,0,false,true),
+   ("target/katsmithy_r2_head_skills.bin",0x1d8000,0x1f78c4,8,0,true,false)]{
+   let Ok(b)=std::fs::read(file) else{std::println!("skip {file}");continue};
+   let at=find(&b).expect(file);assert_eq!(at+data,want,"{file}");
+   let c=cursor(&b[at..at+SPAN]).unwrap();assert_eq!((c.row,c.piece,c.skills,c.set),(row,piece,skills,set),"{file}");
+   assert!(KNOWN.contains(&(want as u32)));
+  }
+ }
 }

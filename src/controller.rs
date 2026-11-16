@@ -1,6 +1,6 @@
 //! Physical binding detection plus post-remapping engine menu ownership.
 use core::{ptr,sync::atomic::{AtomicU32,AtomicBool,Ordering}};
-use crate::{STATE,content,navigation::{L3,Navigation}};
+use crate::{STATE,content,navigation::L3};
 const LAZY_RESOLVER:u32=0x13efd44;
 const GOT:[u32;5]=[0x1838494,0x1838498,0x183849c,0x18384a0,0x18384a4];
 // Compact diagnostic snapshot: raw buttons/X/Y, delivered buttons/X/Y, capture, scope, sequence.
@@ -108,7 +108,7 @@ unsafe fn filter(index:usize,state:u32,id:u32){
             if crate::bindings::matches(raw,chord)||(chord&0xff0000!=0&&modifier!=0&&raw&modifier==modifier){captured|=chord;}
         }}
         if direction!=0{
-            let next=Navigation::page(s.page,s.page_count,direction);
+            let next=crate::navigation::page(s.page,s.page_count,direction);
             if next!=s.page{crate::sound::request();s.page=next;}
         }
         let old=PAD_RELEASE.load(Ordering::Acquire);

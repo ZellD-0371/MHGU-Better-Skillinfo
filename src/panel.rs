@@ -1,7 +1,7 @@
 use alloc::{string::{String,ToString},vec::Vec};
 use core::{cell::UnsafeCell,fmt::Write};
 use forge::{imgui,sys::imgui::{ImVec2,ImVec4,ImGuiCond,ImGuiWindowFlags}};
-use crate::{Config,Content,Text,TREES,STATE,color,colored,effect_visible,equipped,pagination};
+use crate::{Config,Content,Text,TREES,STATE,color,effect_visible,equipped,pagination};
 
 #[derive(Clone)]
 struct Row {left:String,right:Option<String>,color:ImVec4,left_values:Vec<Value>,right_values:Vec<Value>,separator:bool}
@@ -18,18 +18,6 @@ fn value(text:&mut String,values:&mut Vec<Value>,points:i32,signed:bool){
     let start=text.len();
     if signed{let _=write!(text,"{}",crate::comparison::Point(points));}else{let _=write!(text,"{}",points);}
     values.push(Value{start,end:text.len(),points});
-}
-fn draw_values(text:&str,values:&[Value],default:ImVec4){
-    let mut start=0;let mut drawn=false;
-    for v in values{
-        for (part,tint) in [(&text[start..v.start],default),(&text[v.start..v.end],point_color(v.points))]{
-            if part.is_empty(){continue}
-            if drawn{imgui::same_line(0.,0.);}
-            colored(part,tint);drawn=true;
-        }
-        start=v.end;
-    }
-    if start<text.len(){if drawn{imgui::same_line(0.,0.);}colored(&text[start..],default);}
 }
 #[derive(PartialEq)]
 struct Key {selection:u64,config:Config,width:u32,capacity:usize,totals:[Option<i32>;32],projected:[Option<i32>;32],projection:crate::Projection,incompatible:bool}
@@ -178,7 +166,7 @@ fn current_page(selected:&Content,count:usize,c:Config)->usize{
             let pressed=now&!HELD.swap(now,core::sync::atomic::Ordering::AcqRel);
             let left=pressed&1!=0;let right=pressed&2!=0;
             let direction=right as i32-left as i32;
-            let next=crate::navigation::Navigation::page(s.page,s.page_count,direction);
+            let next=crate::navigation::page(s.page,s.page_count,direction);
             if next!=s.page{crate::sound::request();s.page=next;}
         }
         s.page
@@ -188,12 +176,13 @@ fn pack(c:ImVec4)->u32{
     let b=|v:f32|(v.clamp(0.,1.)*255.+0.5) as u32;
     (b(c.w)<<24)|(b(c.z)<<16)|(b(c.y)<<8)|b(c.x)
 }
-fn text_at(d:imgui::DrawList,font:*mut forge::sys::imgui::ImFont,size:f32,x:f32,y:f32,col:ImVec4,text:&str){
+type Font=*mut forge::sys::imgui::ImFont;
+fn text_at(d:imgui::DrawList,font:Font,size:f32,x:f32,y:f32,col:ImVec4,text:&str){
     if text.is_empty(){return}
     unsafe{forge::sys::imgui::ImDrawList_AddText_FontPtr(d.raw(),font,size,ImVec2{x,y},pack(col),text.as_ptr() as *const _,text.as_ptr().add(text.len()) as *const _,0.,core::ptr::null());}
 }
-/// draw_values on a draw list: the same coloured segments, advanced by measured width.
-fn values_at(d:imgui::DrawList,font:*mut forge::sys::imgui::ImFont,size:f32,mut x:f32,y:f32,text:&str,values:&[Value],default:ImVec4){
+/// Coloured value segments within one line, advanced by measured width.
+fn values_at(d:imgui::DrawList,font:Font,size:f32,mut x:f32,y:f32,text:&str,values:&[Value],default:ImVec4){
     let mut start=0;
     for v in values{
         for (part,tint) in [(&text[start..v.start],default),(&text[v.start..v.end],point_color(v.points))]{
@@ -203,6 +192,65 @@ fn values_at(d:imgui::DrawList,font:*mut forge::sys::imgui::ImFont,size:f32,mut 
     }
     text_at(d,font,size,x,y,default,&text[start..]);
 }
+
+/// Everything one frame of the panel needs; the page rows stay in CACHE.
+/// Both paths (ImGui window, Wishlist's foreground list) draw it with `paint`.
+struct Prepared{font:Font,size:f32,spacing:f32,padding:f32,width:f32,panel_width:f32,height:f32,warning:Vec<String>,warning_gap:f32,page:usize,count:usize,scale:f32,opacity:f32}
+/// Call with the panel font pushed: measurement and drawing share its size.
+fn prepare(c:Config,selected:&Content,totals:[Option<i32>;32],scale:f32,max_height:f32)->Option<Prepared>{
+    let font=unsafe{forge::sys::imgui::igGetFont()};let size=unsafe{forge::sys::imgui::igGetFontSize()};
+    if font.is_null()||!(size>0.){return None}
+    let padding=12.*scale;let spacing=imgui::get_style().ItemSpacing.y;let row_height=size+spacing;
+    let panel_width=c.width as f32*scale;let width=(panel_width-padding*2.-2.).max(80.);
+    // Repeat the warning on each page and reserve its text plus the gap below.
+    let warning=if selected.incompatible{wrapped(crate::locales::INCOMPATIBLE[c.language],width)}else{Vec::new()};
+    let warning_gap=(row_height*0.5-spacing).max(0.);
+    let warning_height=if warning.is_empty(){0.}else{warning.len() as f32*row_height+warning_gap+spacing};
+    // Reserve only the centered page counter; bindings remain in settings.
+    let capacity=(((max_height-padding*2.-warning_height-row_height-12.)/row_height) as usize).max(4);
+    let key=Key{selection:selected.key,config:c,width:width.to_bits(),capacity,totals,projected:selected.total_after,projection:selected.projection,incompatible:selected.incompatible};
+    let slot=unsafe{&mut *CACHE.0.get()};
+    if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,selected,width,capacity,totals,language));*slot=Some(Cache{key,pages});}
+    let count=slot.as_ref().map_or(0,|cache|cache.pages.len());
+    let page=current_page(selected,count,c);
+    let rows=slot.as_ref().and_then(|cache|cache.pages.get(page)).map_or(0,Vec::len);
+    let height=crate::wishlist_model::panel_height(rows,count,padding,size,spacing)+warning_height;
+    Some(Prepared{font,size,spacing,padding,width,panel_width,height,warning,warning_gap,page,count,scale,opacity:c.opacity})
+}
+fn paint(d:imgui::DrawList,x:f32,y:f32,p:&Prepared){
+    crate::skin::paint(d,x,y,p.panel_width,p.height,p.scale,p.opacity);
+    let (font,size)=(p.font,p.size);let row_height=size+p.spacing;let rule=0x66999999;let thick=p.scale.max(1.);
+    let left=x+p.padding;let mut top=y+p.padding;
+    if !p.warning.is_empty(){
+        for line in &p.warning{
+            let w=imgui::calc_text_size(line,false,0.).x;
+            text_at(d,font,size,left+((p.width-w)*0.5).max(0.),top,color(1.,0.3,0.3),line);top+=row_height;
+        }
+        let line=top+p.warning_gap*0.5;
+        d.add_line(ImVec2{x:left,y:line},ImVec2{x:left+p.width,y:line},rule,thick);
+        top+=p.warning_gap+p.spacing;
+    }
+    let cache=unsafe{&*CACHE.0.get()};
+    let rows=cache.as_ref().and_then(|cache|cache.pages.get(p.page)).map_or(&[][..],|rows|&rows[..]);
+    for row in rows{
+        if row.separator{
+            // A full row reserved by pagination gives the line balanced breathing room.
+            let line=top+(row_height-p.spacing).max(1.)*0.5;
+            d.add_line(ImVec2{x:left,y:line},ImVec2{x:left+p.width,y:line},rule,thick);
+        }else{
+            values_at(d,font,size,left,top,&row.left,&row.left_values,row.color);
+            if let Some(right)=&row.right{let w=imgui::calc_text_size(right,false,0.).x;values_at(d,font,size,left+p.width-w,top,right,&row.right_values,color(0.9,0.9,0.9));}
+        }
+        top+=row_height;
+    }
+    if p.count>1{
+        d.add_line(ImVec2{x:left,y:top},ImVec2{x:left+p.width,y:top},rule,thick);top+=1.+p.spacing;
+        let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",p.page+1,p.count);
+        let w=imgui::calc_text_size(counter.str(),false,0.).x;
+        text_at(d,font,size,left+((p.width-w)*0.5).max(0.),top,color(1.,0.85,0.3),counter.str());
+    }
+}
+
 /// Wishlist's detail page 2. Wishlist and other plugins (KatSmithy) draw on ImGui's
 /// foreground list, which covers every ImGui window; Wishlist calls this right after
 /// its own window, so the panel is drawn on that list just above Wishlist.
@@ -215,39 +263,9 @@ pub fn render_wishlist(){
     let Some(hud)=hud(base,installed) else{return};
     let scale=hud.scale;
     let d=imgui::DrawList::foreground();if d.raw().is_null(){return}
-    let panel_width=c.width as f32*scale;
-    let (x,y,max_height)=crate::wishlist_model::placement(piece,panel_width,c.max_height as f32*scale);
+    let (x,y,max_height)=crate::wishlist_model::placement(piece,c.width as f32*scale,c.max_height as f32*scale);
     let pushed=crate::push_font(c.font_size as f32*scale);
-    let font=unsafe{forge::sys::imgui::igGetFont()};let size=unsafe{forge::sys::imgui::igGetFontSize()};
-    if font.is_null()||!(size>0.){if pushed{imgui::pop_font();}return}
-    let padding=12.*scale;let spacing=imgui::get_style().ItemSpacing.y;let row_height=size+spacing;
-    let width=(panel_width-padding*2.-2.).max(80.);
-    let capacity=(((max_height-padding*2.-row_height-12.)/row_height) as usize).max(4);
-    let key=Key{selection:selected.key,config:c,width:width.to_bits(),capacity,totals:[None;32],projected:selected.total_after,projection:selected.projection,incompatible:selected.incompatible};
-    let slot=unsafe{&mut *CACHE.0.get()};
-    if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,&selected,width,capacity,[None;32],language));*slot=Some(Cache{key,pages});}
-    let cache=slot.as_ref().unwrap();let count=cache.pages.len();
-    let page=current_page(&selected,count,c);
-    let rows=cache.pages.get(page).map_or(&[][..],|p|&p[..]);
-    let height=crate::wishlist_model::panel_height(rows.len(),count,padding,size,spacing);
-    crate::skin::paint(d,x,y,panel_width,height,scale,c.opacity);
-    let left=x+padding;let mut top=y+padding;let rule=0x66999999;
-    for row in rows{
-        if row.separator{
-            let line=top+(row_height-spacing).max(1.)*0.5;
-            d.add_line(ImVec2{x:left,y:line},ImVec2{x:left+width,y:line},rule,scale.max(1.));
-        }else{
-            values_at(d,font,size,left,top,&row.left,&row.left_values,row.color);
-            if let Some(right)=&row.right{let w=imgui::calc_text_size(right,false,0.).x;values_at(d,font,size,left+width-w,top,right,&row.right_values,color(0.9,0.9,0.9));}
-        }
-        top+=row_height;
-    }
-    if count>1{
-        d.add_line(ImVec2{x:left,y:top},ImVec2{x:left+width,y:top},rule,scale.max(1.));top+=1.+spacing;
-        let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",page+1,count);
-        let w=imgui::calc_text_size(counter.str(),false,0.).x;
-        text_at(d,font,size,left+((width-w)*0.5).max(0.),top,color(1.,0.85,0.3),counter.str());
-    }
+    if let Some(p)=prepare(c,&selected,[None;32],scale,max_height){paint(d,x,y,&p);}
     if pushed{imgui::pop_font();}
 }
 
@@ -266,87 +284,38 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
     if !viewport.is_null(){unsafe{panel_x+=(*viewport).Pos.x;panel_y+=(*viewport).Pos.y;}}
     let max_height=(c.max_height as f32).min(720.-c.y as f32-16.)*scale;
     if selected.preview{
-        // Draw the effective outer bounds independently of the auto-sized content window.
+        // Draw the effective outer bounds independently of the panel itself.
         // This does not create an input target or change layout/pagination.
         imgui::DrawList::foreground().add_rect(
             ImVec2{x:panel_x,y:panel_y},
             ImVec2{x:panel_x+c.width as f32*scale,y:panel_y+max_height},
             0xff40cfff,0.,(2.*scale).max(1.),forge::sys::imgui::ImDrawFlags::None);
     }
+    let mut totals=[None;32];
+    if installed&&!selected.preview&&selected.projection.shows_totals(){for (i,(id,_)) in selected.points[..selected.count].iter().enumerate(){if let Some(tree)=TREES.iter().find(|t|t.id==*id){totals[i]=equipped::total(base,tree.gu_id);}}}
+    if selected.center{for (i,total) in totals[..selected.count].iter_mut().enumerate(){if selected.total_before[i].is_some(){*total=selected.total_before[i];}}}
+    if selected.projection==crate::Projection::ReplaceDecoration{
+        for (i,(_,before)) in selected.points[..selected.count].iter().enumerate(){
+            let after=selected.compared[i].unwrap_or(0);
+            selected.total_after[i]=totals[i].map(|n|crate::comparison::replacement(n,*before,after));
+        }
+    }
     let pushed=crate::push_font(c.font_size as f32*scale);
+    let Some(p)=prepare(c,&selected,totals,scale,max_height) else{if pushed{imgui::pop_font();}return};
+    // A plain window keeps native-screen panels on the usual ImGui window layer.
     imgui::set_next_window_pos(ImVec2{x:panel_x,y:panel_y},ImGuiCond::Always,ImVec2{x:0.,y:0.});
-    imgui::set_next_window_size(ImVec2{x:c.width as f32*scale,y:0.},ImGuiCond::Always);
+    imgui::set_next_window_size(ImVec2{x:p.panel_width,y:p.height},ImGuiCond::Always);
     unsafe {
-        forge::sys::imgui::igPushStyleVar_Vec2(forge::sys::imgui::ImGuiStyleVar::WindowPadding,ImVec2{x:12.*scale,y:12.*scale});
+        forge::sys::imgui::igPushStyleVar_Vec2(forge::sys::imgui::ImGuiStyleVar::WindowPadding,ImVec2{x:0.,y:0.});
         forge::sys::imgui::igPushStyleVar_Float(forge::sys::imgui::ImGuiStyleVar::WindowBorderSize,0.);
     }
-    let flags=ImGuiWindowFlags::NoTitleBar|ImGuiWindowFlags::NoResize|ImGuiWindowFlags::NoMove|ImGuiWindowFlags::NoSavedSettings|ImGuiWindowFlags::AlwaysAutoResize|ImGuiWindowFlags::NoInputs|ImGuiWindowFlags::NoScrollbar|ImGuiWindowFlags::NoScrollWithMouse;
-    if imgui::begin(c"MHGU Better_Skillinfo",None,flags|ImGuiWindowFlags::NoBackground){
-        crate::skin::begin();
-        let width=(imgui::get_content_region_avail().x-2.).max(80.);
-        let row_height=imgui::get_text_line_height_with_spacing();
-        let padding=imgui::get_style().WindowPadding.y*2.;
-        // Reserve only the centered page counter; bindings remain in settings.
-        let footer_rows=1;
-        // Repeat the warning on each page and reserve its text plus the gap below.
-        let warning=if selected.incompatible{wrapped(crate::locales::INCOMPATIBLE[c.language],width)}else{Vec::new()};
-        let warning_height=if warning.is_empty(){0.}else{(warning.len() as f32+0.5)*row_height};
-        let capacity=(((max_height-padding-warning_height-footer_rows as f32*row_height-12.)/row_height) as usize).max(4);
-        let mut totals=[None;32];
-        if installed&&!selected.preview&&selected.projection.shows_totals(){for (i,(id,_)) in selected.points[..selected.count].iter().enumerate(){if let Some(tree)=TREES.iter().find(|t|t.id==*id){totals[i]=equipped::total(base,tree.gu_id);}}}
-        if selected.center{for (i,total) in totals[..selected.count].iter_mut().enumerate(){if selected.total_before[i].is_some(){*total=selected.total_before[i];}}}
-        if selected.projection==crate::Projection::ReplaceDecoration{
-            for (i,(_,before)) in selected.points[..selected.count].iter().enumerate(){
-                let after=selected.compared[i].unwrap_or(0);
-                selected.total_after[i]=totals[i].map(|n|crate::comparison::replacement(n,*before,after));
-            }
-        }
-        let key=Key{selection:selected.key,config:c,width:width.to_bits(),capacity,totals,projected:selected.total_after,projection:selected.projection,incompatible:selected.incompatible};
-        let slot=unsafe{&mut *CACHE.0.get()};
-        if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,&selected,width,capacity,totals,language));*slot=Some(Cache{key,pages});}
-        let cache=slot.as_ref().unwrap();let count=cache.pages.len();
-        let page=current_page(&selected,count,c);
-        if !warning.is_empty(){
-            let left=imgui::get_cursor_pos().x;
-            for line in &warning{
-                let text_width=imgui::calc_text_size(line,false,0.).x;
-                imgui::set_cursor_pos_x(left+((width-text_width)*0.5).max(0.));
-                colored(line,color(1.,0.3,0.3));
-            }
-            imgui::set_cursor_pos_x(left);
-            // Draw inside the existing gap without advancing the layout cursor.
-            let gap=(row_height*0.5-imgui::get_style().ItemSpacing.y).max(0.);
-            let mut start=imgui::get_cursor_screen_pos();
-            start.y+=gap*0.5;
-            imgui::DrawList::window().add_line(start,ImVec2{x:start.x+width,y:start.y},0x66999999,scale.max(1.));
-            imgui::dummy(ImVec2{x:0.,y:gap});
-        }
-        if let Some(rows)=cache.pages.get(page){
-            for row in rows{
-                if row.separator{
-                    // A full row reserved by pagination gives the line balanced breathing room.
-                    let gap=(row_height-imgui::get_style().ItemSpacing.y).max(1.);
-                    let mut start=imgui::get_cursor_screen_pos();
-                    start.y+=gap*0.5;
-                    imgui::DrawList::window().add_line(start,ImVec2{x:start.x+width,y:start.y},0x66999999,scale.max(1.));
-                    imgui::dummy(ImVec2{x:0.,y:gap});
-                    continue
-                }
-                let pos=imgui::get_cursor_pos();draw_values(&row.left,&row.left_values,row.color);
-                if let Some(right)=&row.right{let w=imgui::calc_text_size(right,false,0.).x;imgui::same_line(pos.x+width-w,0.);draw_values(right,&row.right_values,color(0.9,0.9,0.9));}
-            }
-        }
-        if count>1 {
-            imgui::separator();
-            let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",page+1,count);
-            let left=imgui::get_cursor_pos().x;
-            let counter_width=imgui::calc_text_size(counter.str(),false,0.).x;
-            imgui::set_cursor_pos_x(left+((width-counter_width)*0.5).max(0.));
-            // The counter is the final item. Resetting the cursor after it makes
-            // ImGui treat the trailing line spacing as an unsubmitted item.
-            colored(counter.str(),color(1.,0.85,0.3));
-        }
-        crate::skin::end(scale,c.opacity);
+    let flags=ImGuiWindowFlags::NoTitleBar|ImGuiWindowFlags::NoResize|ImGuiWindowFlags::NoMove|ImGuiWindowFlags::NoSavedSettings|ImGuiWindowFlags::NoInputs|ImGuiWindowFlags::NoScrollbar|ImGuiWindowFlags::NoScrollWithMouse|ImGuiWindowFlags::NoBackground;
+    if imgui::begin(c"MHGU Better_Skillinfo",None,flags){
+        let d=imgui::DrawList::window();
+        let at=unsafe{forge::sys::imgui::igGetWindowPos()};
+        unsafe{forge::sys::imgui::ImDrawList_PushClipRectFullScreen(d.raw());}
+        paint(d,at.x,at.y,&p);
+        unsafe{forge::sys::imgui::ImDrawList_PopClipRect(d.raw());}
     }
     imgui::end();unsafe{forge::sys::imgui::igPopStyleVar(2);}if pushed{imgui::pop_font();}
 }

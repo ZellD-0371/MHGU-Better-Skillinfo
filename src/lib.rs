@@ -14,6 +14,8 @@ mod skin;
 mod layout;
 mod sound;
 mod sound_guard;
+// Generated tables keep every column of their source, used or not.
+#[allow(dead_code)]
 mod generated;
 mod language;
 mod logging;
@@ -85,8 +87,8 @@ const EMPTY:Candidate=Candidate{owner:0,vt:0,group:0,widget:0,deco:0,age:0,score
 #[derive(Clone,Copy)]
 struct Armor {identity:u64,owner:u32,points:[(u16,i32);32],pack_totals:[i16;206],count:usize,change:bool,eligible:bool,selected:bool,slot:u8,upgrade:bool,relocate:bool,inspect:bool,attachment:bool,production:bool,incompatible:bool}
 impl Armor{const EMPTY:Self=Self{identity:0,owner:0,points:[(0,0);32],pack_totals:[equipped::UNKNOWN;206],count:0,change:false,eligible:false,selected:false,slot:255,upgrade:false,relocate:false,inspect:false,attachment:false,production:false,incompatible:false};}
-struct State {socket_owner:u32,socket_info_owner:u32,page:usize,page_count:usize,page_key:u64,navigation:navigation::Navigation,input_ready:bool,armors:[Armor;8],config:Config,base:u32,installed:bool,frame:u32,candidates:[Candidate;8],preview:bool,preview_id:i32,preview_center:bool,status:u8,logs:u32 }
-impl State { const fn new()->Self{Self{socket_owner:0,socket_info_owner:0,page:0,page_count:1,page_key:0,navigation:navigation::Navigation::new(),input_ready:false,armors:[Armor::EMPTY;8],config:Config::DEFAULT,base:0,installed:false,frame:0,candidates:[EMPTY;8],preview:false,preview_id:1,preview_center:false,status:0,logs:0}} }
+struct State {socket_owner:u32,socket_info_owner:u32,page:usize,page_count:usize,page_key:u64,input_ready:bool,armors:[Armor;8],config:Config,base:u32,installed:bool,frame:u32,candidates:[Candidate;8],preview:bool,preview_id:i32,preview_center:bool,status:u8,logs:u32 }
+impl State { const fn new()->Self{Self{socket_owner:0,socket_info_owner:0,page:0,page_count:1,page_key:0,input_ready:false,armors:[Armor::EMPTY;8],config:Config::DEFAULT,base:0,installed:false,frame:0,candidates:[EMPTY;8],preview:false,preview_id:1,preview_center:false,status:0,logs:0}} }
 struct Shared { locked:AtomicBool,data:UnsafeCell<State> }
 unsafe impl Sync for Shared {}
 impl Shared {
@@ -285,7 +287,6 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
 fn push_font(size:f32)->bool{if let Some(f)=unsafe{FONT}{imgui::push_font(&f,Some(size));true}else{false}}
 
 fn color(r:f32,g:f32,b:f32)->ImVec4{ImVec4{x:r,y:g,z:b,w:1.}}
-fn colored(text:&str,c:ImVec4){imgui::push_style_color(forge::sys::imgui::ImGuiCol::Text,c);imgui::text(text);imgui::pop_style_color(1);}
 
 fn save_config(c:Config)->Result<(),&'static str>{
     let mut t=Text::new();let _=write!(t,"logging_enabled={}\n",c.logging);let _=write!(t,"version=3\nenabled={}\narmor_enabled={}\nlanguage={}\nshow_all={}\nshow_descriptions={}\nx={}\ny={}\nwidth={}\nmax_height={}\nfont_size={}\nopacity={:.1}\n",c.enabled,c.armor_enabled,c.language,c.show_all,c.descriptions,c.x,c.y,c.width,c.max_height,c.font_size,c.opacity);
@@ -388,7 +389,7 @@ pub extern "C" fn forge_onImGuiRender(){
         }
         if confirmation(actions.reset_title,actions.reset_question,actions){
             c=Config::DEFAULT;preview=false;p=1;status=3;
-            STATE.with(|s|{s.preview_center=false;s.page=0;s.page_count=1;s.page_key=0;s.navigation=navigation::Navigation::new();});
+            STATE.with(|s|{s.preview_center=false;s.page=0;s.page_count=1;s.page_key=0;});
         }
         if confirmation(actions.save_title,actions.save_question,actions){
             status=match save_config(c){Ok(())=>1,Err(e)=>{warn!("[better-skillinfo] {}",e);2}};
@@ -409,6 +410,6 @@ pub extern "C" fn forge_onImGuiFreeRender(){
     bindings::capture_overlay(STATE.with(|s|s.config.language));
     if bindings::capturing(){return}
     let (c,selected,base,installed)=STATE.with(|s|(s.config,content(s,true),s.base,s.installed));
-    let Some(selected)=selected else{STATE.with(|s|{s.page=0;s.page_count=1;s.page_key=0;s.navigation=navigation::Navigation::new();});return};
+    let Some(selected)=selected else{STATE.with(|s|{s.page=0;s.page_count=1;s.page_key=0;});return};
     panel::render(c,selected,base,installed);
 }
