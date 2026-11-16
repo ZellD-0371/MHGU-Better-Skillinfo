@@ -49,16 +49,38 @@ pub fn discover_once(){
     if let Some(total)=total{if !(base..base.saturating_add(total)).contains(&own)&&len<=16*1024*1024&&len>=32{
      if let Some(start)=base.checked_add(ro){if readable(start,len){
       let bytes=unsafe{core::slice::from_raw_parts(start as *const u8,len as usize)};
-      if crate::katsmithy_model::identifies(bytes)&&MODE_OFFSET.checked_add(4).is_some_and(|n|n<=total)&&readable(base+MODE_OFFSET,4){
-       MODULE_SIZE.store(total,Ordering::Release);MODULE.store(base,Ordering::Release);crate::log_info!("[better-skillinfo] KatSmithy detected at {:08X}",base);return
+      if MODULE.load(Ordering::Acquire)==0&&crate::katsmithy_model::identifies(bytes)&&MODE_OFFSET.checked_add(4).is_some_and(|n|n<=total)&&readable(base+MODE_OFFSET,4){
+       MODULE_SIZE.store(total,Ordering::Release);MODULE.store(base,Ordering::Release);crate::log_info!("[better-skillinfo] KatSmithy detected at {:08X}",base);
       }
      }}
+     // Wishlist publishes its detail-page view in its data segment.
+     let (data,data_len)=unsafe{(word(base+0x30),word(base+0x34))};
+     if !crate::wishlist_view::found()&&data_len<=16*1024*1024&&data.checked_add(data_len).is_some_and(|n|n<=total){
+      if let Some(start)=base.checked_add(data){if readable(start,data_len){crate::wishlist_view::locate(start,data_len);}}
+     }
     }}
    }
   }
+  if MODULE.load(Ordering::Acquire)!=0&&crate::wishlist_view::found(){break}
   if next>=0x100000000{break}at=next as u32;
  }
- crate::log_info!("[better-skillinfo] KatSmithy not detected; discovery complete");
+ if MODULE.load(Ordering::Acquire)==0{crate::log_info!("[better-skillinfo] KatSmithy not detected");}
+ if !crate::wishlist_view::found(){crate::log_info!("[better-skillinfo] Wishlist skill view not detected");}
+ crate::log_info!("[better-skillinfo] module discovery complete");
+}
+/// Armor skill points of one KatSmithy/Wishlist piece: series ID and native kind 1..5.
+pub fn armor_points(id:u16,kind:u16)->([(u16,i32);32],usize){
+ let mut points=[(0u16,0i32);32];let mut count=0;
+ let key=(id,kind);let mut lo=0usize;let mut hi=ARMOR.len()/6;
+ while lo<hi{let mid=(lo+hi)/2;let r=&ARMOR[mid*6..mid*6+6];
+  if (u16::from_le_bytes([r[0],r[1]]),r[2] as u16)<key{lo=mid+1}else{hi=mid}
+ }
+ for r in ARMOR[lo*6..].chunks_exact(6){
+  if u16::from_le_bytes([r[0],r[1]])!=id||r[2] as u16!=kind{break}
+  let gu=u16::from_le_bytes([r[3],r[4]]);
+  if let Some(t)=TREES.iter().find(|t|t.gu_id==gu){crate::equipment_skills::add(&mut points,&mut count,t.id,r[5] as i8 as i32);}
+ }
+ (points,count)
 }
 /// One-time search for the Forge trampoline of a hook placed over KatSmithy's: its
 /// copied entry words are KatSmithy's jump. Only small executable regions outside
@@ -130,16 +152,7 @@ pub fn content(s:&State)->Option<Option<Content>>{
  if !crate::katsmithy_model::valid_cursor(count,row,piece){return Some(None)}
  let id=unsafe{half(module+SET_IDS+row*2)};let kind=(piece+1) as u16;
  if id==0{return Some(None)}
- let mut points=[(0u16,0i32);32];let mut count=0;
- let key=(id,kind);let mut lo=0usize;let mut hi=ARMOR.len()/6;
- while lo<hi{let mid=(lo+hi)/2;let r=&ARMOR[mid*6..mid*6+6];
-  if (u16::from_le_bytes([r[0],r[1]]),r[2] as u16)<key{lo=mid+1}else{hi=mid}
- }
- for r in ARMOR[lo*6..].chunks_exact(6){
-  if u16::from_le_bytes([r[0],r[1]])!=id||r[2] as u16!=kind{break}
-  let gu=u16::from_le_bytes([r[3],r[4]]);
-  if let Some(t)=TREES.iter().find(|t|t.gu_id==gu){crate::equipment_skills::add(&mut points,&mut count,t.id,r[5] as i8 as i32);}
- }
+ let (points,count)=armor_points(id,kind);
  if count==0{return Some(None)}
  Some(Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count,
  key:0x4b53000000000000|((kind as u64)<<16)|id as u64,preview:false,center:false,incompatible:false,projection:Projection::ProductionEquipment}))

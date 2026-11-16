@@ -156,15 +156,106 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
     paginate(&groups,capacity)
 }
 
-pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
+fn hud(base:u32,installed:bool)->Option<crate::layout::HudViewport>{
     let viewport=unsafe{forge::sys::imgui::igGetMainViewport()};
     let size=if viewport.is_null(){(0.,0.)}else{unsafe{((*viewport).Size.x,(*viewport).Size.y)}};
     let display=imgui::get_io().DisplaySize;
-    let Some((logical_width,logical_height))=crate::layout::viewport_size(size,(display.x,display.y)) else{return};
-    let hud=(if installed{crate::layout::hud_size(base)}else{None})
+    let (logical_width,logical_height)=crate::layout::viewport_size(size,(display.x,display.y))?;
+    (if installed{crate::layout::hud_size(base)}else{None})
         .and_then(|(rw,rh,uw)|crate::layout::hud_viewport(logical_width,logical_height,rw,rh,uw))
-        .or_else(||crate::layout::native_viewport(logical_width,logical_height));
-    let Some(hud)=hud else{return};
+        .or_else(||crate::layout::native_viewport(logical_width,logical_height))
+}
+/// Shared page state and keyboard paging for both panel paths.
+fn current_page(selected:&Content,count:usize,c:Config)->usize{
+    STATE.with(|s|{
+        if s.page_key!=selected.key{s.page=0;s.page_key=selected.key;}
+        s.page_count=count.max(1);s.page=s.page.min(count.saturating_sub(1));
+        // Forge's keyboard API remains available while its settings menu is closed.
+        // Preview/settings never consume these shortcuts; one arrow press moves one page.
+        if !selected.preview&&!forge::graphics::Graphics::is_menu_visible(){
+            static HELD:core::sync::atomic::AtomicU32=core::sync::atomic::AtomicU32::new(0);
+            let now=crate::bindings::key_down(c.keyboard_previous) as u32|((crate::bindings::key_down(c.keyboard_next) as u32)<<1);
+            let pressed=now&!HELD.swap(now,core::sync::atomic::Ordering::AcqRel);
+            let left=pressed&1!=0;let right=pressed&2!=0;
+            let direction=right as i32-left as i32;
+            let next=crate::navigation::Navigation::page(s.page,s.page_count,direction);
+            if next!=s.page{crate::sound::request();s.page=next;}
+        }
+        s.page
+    })
+}
+fn pack(c:ImVec4)->u32{
+    let b=|v:f32|(v.clamp(0.,1.)*255.+0.5) as u32;
+    (b(c.w)<<24)|(b(c.z)<<16)|(b(c.y)<<8)|b(c.x)
+}
+fn text_at(d:imgui::DrawList,font:*mut forge::sys::imgui::ImFont,size:f32,x:f32,y:f32,col:ImVec4,text:&str){
+    if text.is_empty(){return}
+    unsafe{forge::sys::imgui::ImDrawList_AddText_FontPtr(d.raw(),font,size,ImVec2{x,y},pack(col),text.as_ptr() as *const _,text.as_ptr().add(text.len()) as *const _,0.,core::ptr::null());}
+}
+/// draw_values on a draw list: the same coloured segments, advanced by measured width.
+fn values_at(d:imgui::DrawList,font:*mut forge::sys::imgui::ImFont,size:f32,mut x:f32,y:f32,text:&str,values:&[Value],default:ImVec4){
+    let mut start=0;
+    for v in values{
+        for (part,tint) in [(&text[start..v.start],default),(&text[v.start..v.end],point_color(v.points))]{
+            text_at(d,font,size,x,y,tint,part);x+=imgui::calc_text_size(part,false,0.).x;
+        }
+        start=v.end;
+    }
+    text_at(d,font,size,x,y,default,&text[start..]);
+}
+/// Wishlist's detail page 2. Wishlist and other plugins (KatSmithy) draw on ImGui's
+/// foreground list, which covers every ImGui window; Wishlist calls this right after
+/// its own window, so the panel is drawn on that list just above Wishlist.
+pub fn render_wishlist(){
+    if crate::bindings::capturing(){return}
+    let (c,selected,base,installed)=STATE.with(|s|(s.config,crate::content(s,false),s.base,s.installed));
+    let Some(selected)=selected else{return};
+    if selected.projection!=crate::Projection::WishlistEquipment{return}
+    let Some(Some(piece))=crate::wishlist_view::piece() else{return};
+    let Some(hud)=hud(base,installed) else{return};
+    let scale=hud.scale;
+    let d=imgui::DrawList::foreground();if d.raw().is_null(){return}
+    let panel_width=c.width as f32*scale;
+    let (x,y,max_height)=crate::wishlist_model::placement(piece,panel_width,c.max_height as f32*scale);
+    let pushed=crate::push_font(c.font_size as f32*scale);
+    let font=unsafe{forge::sys::imgui::igGetFont()};let size=unsafe{forge::sys::imgui::igGetFontSize()};
+    if font.is_null()||!(size>0.){if pushed{imgui::pop_font();}return}
+    let padding=12.*scale;let spacing=imgui::get_style().ItemSpacing.y;let row_height=size+spacing;
+    let width=(panel_width-padding*2.-2.).max(80.);
+    let capacity=(((max_height-padding*2.-row_height-12.)/row_height) as usize).max(4);
+    let key=Key{selection:selected.key,config:c,width:width.to_bits(),capacity,totals:[None;32],projected:selected.total_after,projection:selected.projection,incompatible:selected.incompatible};
+    let slot=unsafe{&mut *CACHE.0.get()};
+    if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,&selected,width,capacity,[None;32],language));*slot=Some(Cache{key,pages});}
+    let cache=slot.as_ref().unwrap();let count=cache.pages.len();
+    let page=current_page(&selected,count,c);
+    let rows=cache.pages.get(page).map_or(&[][..],|p|&p[..]);
+    let height=crate::wishlist_model::panel_height(rows.len(),count,padding,size,spacing);
+    crate::skin::paint(d,x,y,panel_width,height,scale,c.opacity);
+    let left=x+padding;let mut top=y+padding;let rule=0x66999999;
+    for row in rows{
+        if row.separator{
+            let line=top+(row_height-spacing).max(1.)*0.5;
+            d.add_line(ImVec2{x:left,y:line},ImVec2{x:left+width,y:line},rule,scale.max(1.));
+        }else{
+            values_at(d,font,size,left,top,&row.left,&row.left_values,row.color);
+            if let Some(right)=&row.right{let w=imgui::calc_text_size(right,false,0.).x;values_at(d,font,size,left+width-w,top,right,&row.right_values,color(0.9,0.9,0.9));}
+        }
+        top+=row_height;
+    }
+    if count>1{
+        d.add_line(ImVec2{x:left,y:top},ImVec2{x:left+width,y:top},rule,scale.max(1.));top+=1.+spacing;
+        let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",page+1,count);
+        let w=imgui::calc_text_size(counter.str(),false,0.).x;
+        text_at(d,font,size,left+((width-w)*0.5).max(0.),top,color(1.,0.85,0.3),counter.str());
+    }
+    if pushed{imgui::pop_font();}
+}
+
+pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
+    // Drawn by render_wishlist from Wishlist's own render instead.
+    if selected.projection==crate::Projection::WishlistEquipment{return}
+    let viewport=unsafe{forge::sys::imgui::igGetMainViewport()};
+    let Some(hud)=hud(base,installed) else{return};
     let scale=hud.scale;
     if selected.center{
         c.x=c.center_x;
@@ -214,22 +305,7 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
         let slot=unsafe{&mut *CACHE.0.get()};
         if slot.as_ref().is_none_or(|cache|cache.key!=key){let pages=crate::language::with(|language|build(c,&selected,width,capacity,totals,language));*slot=Some(Cache{key,pages});}
         let cache=slot.as_ref().unwrap();let count=cache.pages.len();
-        let page=STATE.with(|s|{
-            if s.page_key!=selected.key{s.page=0;s.page_key=selected.key;}
-            s.page_count=count.max(1);s.page=s.page.min(count.saturating_sub(1));
-            // Forge's keyboard API remains available while its settings menu is closed.
-            // Preview/settings never consume these shortcuts; one arrow press moves one page.
-            if !selected.preview&&!forge::graphics::Graphics::is_menu_visible(){
-                static HELD:core::sync::atomic::AtomicU32=core::sync::atomic::AtomicU32::new(0);
-                let now=crate::bindings::key_down(c.keyboard_previous) as u32|((crate::bindings::key_down(c.keyboard_next) as u32)<<1);
-                let pressed=now&!HELD.swap(now,core::sync::atomic::Ordering::AcqRel);
-                let left=pressed&1!=0;let right=pressed&2!=0;
-                let direction=right as i32-left as i32;
-                let next=crate::navigation::Navigation::page(s.page,s.page_count,direction);
-                if next!=s.page{crate::sound::request();s.page=next;}
-            }
-            s.page
-        });
+        let page=current_page(&selected,count,c);
         if !warning.is_empty(){
             let left=imgui::get_cursor_pos().x;
             for line in &warning{

@@ -7,6 +7,8 @@ mod controller;
 mod menu_input;
 mod katsmithy;
 mod katsmithy_model;
+mod wishlist_model;
+mod wishlist_view;
 mod panel;
 mod skin;
 mod layout;
@@ -189,9 +191,9 @@ fn active_candidate(s:&State)->Option<usize>{
         .max_by_key(|c|(c.score,c.age)).map(|c|c.deco)
 }
 #[derive(Clone,Copy,PartialEq)]
-enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,AttachmentBrowse,UnwornDecoration,ProductionEquipment}
+enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,AttachmentBrowse,UnwornDecoration,ProductionEquipment,WishlistEquipment}
 impl Projection{
-    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::AttachmentBrowse|Self::UnwornDecoration|Self::ProductionEquipment)}
+    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::AttachmentBrowse|Self::UnwornDecoration|Self::ProductionEquipment|Self::WishlistEquipment)}
 }
 #[derive(Clone,Copy)]
 struct Content {points:[(u16,i32);32],compared:[Option<i32>;32],total_before:[Option<i32>;32],total_after:[Option<i32>;32],count:usize,key:u64,preview:bool,center:bool,incompatible:bool,projection:Projection}
@@ -202,6 +204,8 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
         let count=s.preview_id.clamp(1,8) as usize;
         return Some(Content{points:[(0,1);32],compared:[None;32],total_before:[None;32],total_after:[None;32],count,key:0x5052455600000000|count as u64|if s.preview_center{1<<16}else{0},preview:true,center:s.preview_center,incompatible:false,projection:Projection::Calculated})
     }
+    // Wishlist's own window covers the game menus underneath while it is open.
+    if let Some(result)=wishlist_view::content(s){return result}
     if let Some(result)=katsmithy::content(s){return result}
     if sockets::active(s){return sockets::content(s)}
     let live=|a:&&Armor|a.owner>=0x10000&&unsafe{rd(a.owner)==s.base+0x176e344&&byte(a.owner+0x18)!=0};

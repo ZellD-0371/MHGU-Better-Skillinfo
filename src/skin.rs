@@ -13,7 +13,15 @@ pub fn end(scale:f32,opacity:f32) {
         sys::ImDrawList_ChannelsSetCurrent(d.raw(),0);
         sys::ImDrawList_PushClipRectFullScreen(d.raw());
         let p=sys::igGetWindowPos();let size=sys::igGetWindowSize();
-        let x=p.x;let y=p.y;let w=size.x;let h=size.y;
+        paint(d,p.x,p.y,size.x,size.y,scale,opacity);
+        sys::ImDrawList_PopClipRect(d.raw());
+        sys::ImDrawList_ChannelsMerge(d.raw());
+    }
+}
+
+/// The frame and fill at an explicit box, on any draw list (window or foreground).
+pub fn paint(d:DrawList,x:f32,y:f32,w:f32,h:f32,scale:f32,opacity:f32) {
+    unsafe {
         // window_sub uses a dark blue patterned fill and cyan-tinted edges.
         let a=(opacity.clamp(0.,1.)*255.+0.5) as u32;
         d.add_rect_filled(ImVec2{x:x+4.*scale,y:y+4.*scale},ImVec2{x:x+w-4.*scale,y:y+h-4.*scale},(a<<24)|0x001d1712,0.);
@@ -55,7 +63,5 @@ pub fn end(scale:f32,opacity:f32) {
                 d.add_rect_filled(ImVec2{x:px,y:py},ImVec2{x:px+rw as f32*scale,y:py+scale},tint,0.);
             }
         }}
-        sys::ImDrawList_PopClipRect(d.raw());
-        sys::ImDrawList_ChannelsMerge(d.raw());
     }
 }
