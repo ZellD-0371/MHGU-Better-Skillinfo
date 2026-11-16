@@ -7,6 +7,8 @@ static SETUP:AtomicU32=AtomicU32::new(0);
 static ACTIVE:AtomicBool=AtomicBool::new(false);
 static MODULE_SIZE:AtomicU32=AtomicU32::new(0);
 static WINDOW:AtomicU32=AtomicU32::new(0);
+static INITIAL0:AtomicU32=AtomicU32::new(0);
+static INITIAL1:AtomicU32=AtomicU32::new(0);
 const MODE_OFFSET:u32=0x1e4a40;
 // KatSmithy's own filtered set list. Unlike the native cursor, this also tracks
 // pieces that cannot currently be crafted. Verified against locked torso and
@@ -58,22 +60,55 @@ pub fn discover_once(){
  }
  crate::log_info!("[better-skillinfo] KatSmithy not detected; discovery complete");
 }
+/// One-time search for the Forge trampoline of a hook placed over KatSmithy's: its
+/// copied entry words are KatSmithy's jump. Only small executable regions outside
+/// every NRO and the game are read (Forge's trampoline area); run at most once.
+fn kat_chained(base:u32,module:u32,size:u32)->bool{
+ let back=base+0x6f1af0;let own=kat_chained as *const () as u32;let mut at=0u32;
+ for _ in 0..16384{
+  let mut m=Map::default();if unsafe{query(&mut m,at)}!=0{break}
+  let next=m.base.saturating_add(m.size);if next<=at as u64{break}
+  if m.perm&5==5&&m.base>=0x10000&&m.size>=0x20&&m.size<=0x100000&&next<=0x100000000{
+   let start=m.base as u32;let end=next as u32;
+   let foreign=!(start..end).contains(&base)&&!(start..end).contains(&own)&&!(start..end).contains(&module);
+   if foreign&&readable(start,0x14)&&unsafe{word(start+0x10)}!=0x304f524e&&readable(start,end-start){
+    let mut a=start;
+    while a+16<=end{
+     if unsafe{word(a)}==crate::katsmithy_model::FORGE_JUMP{
+      let w=unsafe{[word(a),word(a+4),word(a+8),word(a+12)]};
+      if crate::katsmithy_model::kat_trampoline(w,back,module,size){crate::log_info!("[better-skillinfo] KatSmithy jump found in trampoline {:08X}",a);return true}
+     }
+     a+=4;
+    }
+   }
+  }
+  if next>=0x100000000{break}at=next as u32;
+ }
+ false
+}
 #[forge::hook(offset=0x6f1ae8)]
 fn smithy_update(owner:u32)->u32{
  let result=original!(owner);
  WINDOW.store(owner,Ordering::Release);result
 }
 /// KatSmithy installs its guarded hooks during its first onUpdate, not onInit.
-/// Wait one complete update round regardless of plugin order; never modify its
-/// guarded entry before that. No retry or repeated module scan is performed.
+/// Sample the entry at our first update, wait one complete update round regardless
+/// of plugin order, and never modify its guarded entry before that. No retry or
+/// repeated module scan is performed.
 pub fn update(base:u32){
  let round=SETUP.load(Ordering::Acquire);if round>=2{return}
  SETUP.store(round+1,Ordering::Release);
- if round==0{discover_once();return}
+ let entry=unsafe{[word(base+0x6f1ae8),word(base+0x6f1aec)]};
+ if round==0{discover_once();INITIAL0.store(entry[0],Ordering::Release);INITIAL1.store(entry[1],Ordering::Release);return}
  let module=MODULE.load(Ordering::Acquire);if module==0{return}
- let a=unsafe{word(base+0x6f1ae8)};let target=unsafe{word(base+0x6f1aec)};
- if !crate::katsmithy_model::kat_hook_ready(a,target,module,MODULE_SIZE.load(Ordering::Acquire)){
-  forge::log::prelude::warn!("[better-skillinfo] KatSmithy smithy hook inactive; native skill UI retained");return
+ let initial=[INITIAL0.load(Ordering::Acquire),INITIAL1.load(Ordering::Acquire)];
+ let size=MODULE_SIZE.load(Ordering::Acquire);
+ let chained=crate::katsmithy_model::needs_chain_proof(initial,entry,module,size)&&kat_chained(base,module,size);
+ if !crate::katsmithy_model::kat_hook_ready(initial,entry,module,size,chained){
+  forge::log::prelude::warn!("[better-skillinfo] KatSmithy smithy hook inactive (first {:08X} {:08X}, now {:08X} {:08X}); native skill UI retained",initial[0],initial[1],entry[0],entry[1]);return
+ }
+ if !(entry[1]>=module&&entry[1]-module<MODULE_SIZE.load(Ordering::Acquire)){
+  crate::log_info!("[better-skillinfo] KatSmithy smithy hook chained by another plugin ({:08X}); observer linked on top",entry[1]);
  }
  forge::install_hook!(base,smithy_update);
  ACTIVE.store(true,Ordering::Release);
