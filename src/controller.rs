@@ -172,6 +172,8 @@ pub fn install(base:u32)->bool{
 /// Native SDK imports bind lazily and unsupported controller styles may never
 /// resolve. Attach each style once when it becomes available; never re-chain a
 /// slot that another mod subsequently wraps above us.
+/// The menu and camera entry hooks are in place (pad imports may still be pending).
+pub fn entry_hooked()->bool{INSTALLED.load(Ordering::Acquire)}
 pub fn refresh_pending(base:u32)->bool{
  if !INSTALLED.load(Ordering::Acquire){return false}
  let detours=[full as *const (),dual as *const (),left as *const (),right as *const (),handheld as *const ()];
@@ -181,6 +183,7 @@ pub fn refresh_pending(base:u32)->bool{
   if !crate::menu_input::valid_pad_predecessor(address,base+LAZY_RESOLVER,detours.map(|p|p as u32)){continue}
   ORIGINAL[i].store(address,Ordering::Release);
   unsafe{ptr::write_volatile((base+offset) as *mut u32,detours[i] as u32)};
+  crate::log_info!("[better-skillinfo] controller paging attached to pad style {} ({:08X})",i,address);
  }
  ORIGINAL.iter().any(|a|a.load(Ordering::Acquire)!=0)
 }

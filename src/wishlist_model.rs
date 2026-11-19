@@ -18,8 +18,17 @@ pub fn piece(open:u32,active:u32,kind:u32,id:u32,right:f32,top:f32,bottom:f32)->
  if active!=1||!(1..=5).contains(&kind)||id==0||id>0xffff||!geometry{return Some(None)}
  Some(Some(Piece{kind:kind as u16,id:id as u16,right,top,bottom}))
 }
-/// Panel box left of Wishlist's detail frame: (x, y, max height) in screen pixels.
-pub fn placement(p:Piece,width:f32,max_height:f32)->(f32,f32,f32){((p.right-width).max(0.),p.top,max_height.min(p.bottom-p.top))}
+// Wishlist's layout on its 1280x720 canvas: the published edge is the detail frame's
+// left side at x 964, y 69..620; the list window's frame spans x 128..948, y 52..598.
+const EDGE_SPAN:f32=620.-69.;
+const GAP_X:f32=964.-948.;const GAP_Y:f32=69.-52.;const LIST_HEIGHT:f32=598.-52.;
+/// Panel box in the top-right corner of Wishlist's list window: (x, y, max height) in
+/// screen pixels. The canvas scale comes from the published edge's length.
+pub fn placement(p:Piece,width:f32,max_height:f32)->(f32,f32,f32){
+ let scale=(p.bottom-p.top)/EDGE_SPAN;
+ let (right,top)=(p.right-GAP_X*scale,p.top-GAP_Y*scale);
+ ((right-width).max(0.),top.max(0.),max_height.min(LIST_HEIGHT*scale))
+}
 /// Height of the panel drawn directly on a draw list, matching the ImGui window layout:
 /// padding, one line per row, then either the separator and page counter or no trailing gap.
 pub fn panel_height(rows:usize,pages:usize,padding:f32,font:f32,spacing:f32)->f32{
@@ -36,7 +45,12 @@ pub fn panel_height(rows:usize,pages:usize,padding:f32,font:f32,spacing:f32)->f3
  #[test]fn open_without_armor_page_hides_other_panels(){assert_eq!(piece(1,0,2,33,900.,80.,700.),Some(None));assert_eq!(piece(1,1,7,33,900.,80.,700.),Some(None));assert_eq!(piece(1,1,2,0,900.,80.,700.),Some(None));}
  #[test]fn armor_page_two_is_a_piece(){assert_eq!(piece(1,1,2,33,900.,80.,700.),Some(Some(Piece{kind:2,id:33,right:900.,top:80.,bottom:700.})));}
  #[test]fn bad_geometry_is_rejected(){assert_eq!(piece(1,1,2,33,f32::NAN,80.,700.),Some(None));assert_eq!(piece(1,1,2,33,900.,700.,80.),Some(None));}
- #[test]fn placement_sits_left_of_detail_frame(){let p=Piece{kind:2,id:33,right:1446.,top:104.,bottom:930.};assert_eq!(placement(p,563.,788.),(883.,104.,788.));assert_eq!(placement(p,563.,2000.).2,826.);assert_eq!(placement(Piece{right:100.,..p},563.,500.).0,0.);}
+ #[test]fn placement_sits_in_list_window_corner(){
+  // 1920x1080: canvas scale 1.5, list window frame x 192..1422, y 78..897.
+  let p=Piece{kind:2,id:33,right:1446.,top:103.5,bottom:930.};
+  assert_eq!(placement(p,563.,788.),(1422.-563.,78.,788.));assert_eq!(placement(p,563.,2000.).2,819.);
+  assert_eq!(placement(Piece{right:100.,..p},563.,500.).0,0.);
+ }
  #[test]fn height_matches_window_layout(){
   // 3 rows of 21px text with 4px spacing, one page: no trailing spacing.
   assert_eq!(panel_height(3,1,18.,21.,4.),3.*25.-4.+36.);

@@ -3,7 +3,9 @@ $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $project 'dist/Better-Skillinfo'
 $manifest = Get-Content -LiteralPath (Join-Path $project 'dist/manifest_sha256.json') -Raw | ConvertFrom-Json
-if (Get-Process -Name mhgurecomp -ErrorAction SilentlyContinue) { throw '게임을 저장하고 종료한 뒤 설치하세요.' }
+# The running game keeps the plugin it already loaded; replacing files is safe and
+# takes effect on the next launch.
+if (Get-Process -Name mhgurecomp -ErrorAction SilentlyContinue) { Write-Output '게임 실행 중: 다음 실행부터 적용됩니다.' }
 foreach ($entry in $manifest.PSObject.Properties) {
     $hash = (Get-FileHash -LiteralPath (Join-Path $source $entry.Name) -Algorithm SHA256).Hash
     if ($hash -ne $entry.Value) { throw "배포 파일 해시 불일치: $($entry.Name)" }

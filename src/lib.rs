@@ -9,7 +9,11 @@ mod katsmithy;
 mod katsmithy_model;
 mod wishlist_model;
 mod wishlist_view;
+mod sksim_model;
+mod sksim_view;
 mod panel;
+mod mouse;
+mod mouse_model;
 mod skin;
 mod layout;
 mod sound;
@@ -32,9 +36,9 @@ use forge::{imgui,log::prelude::{warn,error},sys::imgui::{ImVec2,ImVec4,ImGuiSli
 use generated::*;
 
 #[derive(Clone,Copy,PartialEq)]
-struct Config { logging:bool,keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32 }
+struct Config { logging:bool,keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32, sim_auto:bool, sim_x:i32, sim_y:i32, sim_width:i32, sim_height:i32, sim_font_size:i32 }
 impl Config {
-    const DEFAULT:Self=Self{logging:false,keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9};
+    const DEFAULT:Self=Self{logging:false,keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9,sim_auto:true,sim_x:8,sim_y:6,sim_width:220,sim_height:700,sim_font_size:12};
     fn parse(text:&str)->Result<Self,()> {
         let mut c=Self::DEFAULT;
         let version3=text.lines().any(|line|line.split_once('=').is_some_and(|(k,v)|k.trim()=="version"&&v.trim()=="3"));
@@ -49,7 +53,9 @@ impl Config {
                 "deco_enabled"=>c.deco_enabled=v=="true","change_enabled"=>c.change_enabled=v=="true",
                 "center_x"=>c.center_x=v.parse().map_err(|_|())?,"center_y"=>c.center_y=v.parse().map_err(|_|())?,
                 "center_width"=>c.center_width=v.parse().map_err(|_|())?,"center_height"=>c.center_height=v.parse().map_err(|_|())?,
-                "center_font_size"=>c.center_font_size=v.parse().map_err(|_|())?,"center_opacity"=>c.center_opacity=v.parse().map_err(|_|())?,
+                "center_font_size"=>c.center_font_size=v.parse().map_err(|_|())?,
+                "sim_auto"=>c.sim_auto=v=="true","sim_x"=>c.sim_x=v.parse().map_err(|_|())?,"sim_y"=>c.sim_y=v.parse().map_err(|_|())?,
+                "sim_width"=>c.sim_width=v.parse().map_err(|_|())?,"sim_height"=>c.sim_height=v.parse().map_err(|_|())?,"sim_font_size"=>c.sim_font_size=v.parse().map_err(|_|())?,"center_opacity"=>c.center_opacity=v.parse().map_err(|_|())?,
                 "show_descriptions"=>c.descriptions=v=="true",
                 // Migrate the first release to the requested layout and sign filter once.
                 "show_all" if current=>c.show_all=v=="true",
@@ -64,6 +70,7 @@ impl Config {
         c.previous_binding&=bindings::MASK;c.next_binding&=bindings::MASK;
         c.language=c.language.min(8);c.x=c.x.clamp(0,85);c.y=c.y.clamp(0,200);
         c.max_height=c.max_height.clamp(200,680);c.width=c.width.clamp(180,500);c.font_size=c.font_size.clamp(5,20);
+        c.sim_x=c.sim_x.clamp(0,400);c.sim_y=c.sim_y.clamp(0,200);c.sim_width=c.sim_width.clamp(120,500);c.sim_height=c.sim_height.clamp(200,708);c.sim_font_size=c.sim_font_size.clamp(5,20);
         c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(180,500);c.center_height=c.center_height.clamp(200,680);c.center_font_size=c.center_font_size.clamp(5,20);
         if !c.center_opacity.is_finite(){return Err(())}
         c.center_opacity=((c.center_opacity.clamp(0.1,1.)*10.+0.5) as i32) as f32/10.;
@@ -175,7 +182,11 @@ fn main(){
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
     forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
-    if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}else{error!("[better-skillinfo] controller paging awaiting compatible input hooks/imports");}
+    // Emulators that bind pad imports lazily (Ryujinx) attach them later in onUpdate,
+    // which logs each one; only a rejected entry hook is an error.
+    if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}
+    else if controller::entry_hooked(){crate::log_info!("[better-skillinfo] menu filter installed; pad imports not bound yet, attaching when the game first uses them");}
+    else{error!("[better-skillinfo] controller paging disabled: input entry hook signature mismatch");}
     crate::log_info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 
@@ -193,9 +204,9 @@ fn active_candidate(s:&State)->Option<usize>{
         .max_by_key(|c|(c.score,c.age)).map(|c|c.deco)
 }
 #[derive(Clone,Copy,PartialEq)]
-enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,AttachmentBrowse,UnwornDecoration,ProductionEquipment,WishlistEquipment}
+enum Projection{Calculated,AddDecoration,ReplaceDecoration,CurrentOnly,UpgradeEquipment,MoveEquipment,InspectEquipment,AttachmentBrowse,UnwornDecoration,ProductionEquipment,WishlistEquipment,SimulatorSkill,SimulatorEquipment,SimulatorSet}
 impl Projection{
-    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::AttachmentBrowse|Self::UnwornDecoration|Self::ProductionEquipment|Self::WishlistEquipment)}
+    fn shows_totals(self)->bool{!matches!(self,Self::AddDecoration|Self::UpgradeEquipment|Self::MoveEquipment|Self::InspectEquipment|Self::AttachmentBrowse|Self::UnwornDecoration|Self::ProductionEquipment|Self::WishlistEquipment|Self::SimulatorSkill|Self::SimulatorEquipment|Self::SimulatorSet)}
 }
 #[derive(Clone,Copy)]
 struct Content {points:[(u16,i32);32],compared:[Option<i32>;32],total_before:[Option<i32>;32],total_after:[Option<i32>;32],count:usize,key:u64,preview:bool,center:bool,incompatible:bool,projection:Projection}
@@ -208,6 +219,8 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
     }
     // Wishlist's own window covers the game menus underneath while it is open.
     if let Some(result)=wishlist_view::content(s){return result}
+    // Skill-Simulator's window covers the game screens underneath while it is open.
+    if let Some(result)=sksim_view::content(s){return result}
     if let Some(result)=katsmithy::content(s){return result}
     if sockets::active(s){return sockets::content(s)}
     let live=|a:&&Armor|a.owner>=0x10000&&unsafe{rd(a.owner)==s.base+0x176e344&&byte(a.owner+0x18)!=0};
@@ -293,6 +306,7 @@ fn save_config(c:Config)->Result<(),&'static str>{
     let _=write!(t,"deco_enabled={}\nchange_enabled={}\ncenter_x={}\ncenter_y={}\ncenter_width={}\ncenter_height={}\ncenter_font_size={}\ncenter_opacity={:.1}\n",c.deco_enabled,c.change_enabled,c.center_x,c.center_y,c.center_width,c.center_height,c.center_font_size,c.center_opacity);
     let _=write!(t,"keyboard_previous={}\nkeyboard_next={}\n",c.keyboard_previous,c.keyboard_next);
     let _=write!(t,"previous_binding={}\nnext_binding={}\n",c.previous_binding,c.next_binding);
+    let _=write!(t,"sim_auto={}\nsim_x={}\nsim_y={}\nsim_width={}\nsim_height={}\nsim_font_size={}\n",c.sim_auto,c.sim_x,c.sim_y,c.sim_width,c.sim_height,c.sim_font_size);
     storage::SETTINGS.save(t.str())
 }
 
@@ -367,6 +381,19 @@ pub extern "C" fn forge_onImGuiRender(){
         imgui::slider_int(ui.size,&mut c.center_font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igSliderFloat(ui.opacity.as_ptr(),&mut c.center_opacity,0.1,1.,c"%.1f".as_ptr(),ImGuiSliderFlags::AlwaysClamp);forge::sys::imgui::igPopID();}
         c.center_opacity=((c.center_opacity*10.+0.5) as i32).clamp(1,10) as f32/10.;
+        // Used only while Skill-Simulator's window is open.
+        let sim=&locales::SIM[c.language];
+        imgui::text(sim.title);
+        unsafe{forge::sys::imgui::igPushID_Str(c"sim-layout".as_ptr());}
+        imgui::checkbox(sim.auto,&mut c.sim_auto);
+        if !c.sim_auto{
+            imgui::slider_int(c"X",&mut c.sim_x,0,400,ImGuiSliderFlags::AlwaysClamp);
+            imgui::slider_int(c"Y",&mut c.sim_y,0,200,ImGuiSliderFlags::AlwaysClamp);
+            imgui::slider_int(ui.width,&mut c.sim_width,120,500,ImGuiSliderFlags::AlwaysClamp);
+            imgui::slider_int(ui.height,&mut c.sim_height,200,708,ImGuiSliderFlags::AlwaysClamp);
+        }
+        imgui::slider_int(ui.size,&mut c.sim_font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
+        unsafe{forge::sys::imgui::igPopID();}
         imgui::checkbox(ui.preview,&mut preview);
         if preview{
             STATE.with(|s|{imgui::checkbox(extra.preview_center,&mut s.preview_center);});
@@ -407,6 +434,7 @@ pub extern "C" fn forge_onImGuiRender(){
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiFreeRender(){
     language::select(STATE.with(|s|s.config.language));
+    STATE.with(|s|mouse::update(s.base,s.installed));
     bindings::capture_overlay(STATE.with(|s|s.config.language));
     if bindings::capturing(){return}
     let (c,selected,base,installed)=STATE.with(|s|(s.config,content(s,true),s.base,s.installed));

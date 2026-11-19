@@ -53,3 +53,17 @@ pub const INCOMPATIBLE:[&str;9]=[
     "호환되지 않음","Incompatible","互換性なし","不兼容","不相容",
     "Nicht kompatibel","Incompatible","Non compatibile","Incompatible",
 ];
+
+/// Settings: the layout used while Skill-Simulator's window is open.
+pub struct Sim{pub title:&'static str,pub auto:&'static core::ffi::CStr}
+pub const SIM:[Sim;9]=[
+    Sim{title:"Skill-Simulator 열림 배치",auto:c"자동 맞춤 (창 왼쪽 빈 공간)"},
+    Sim{title:"Layout while Skill-Simulator is open",auto:c"Auto fit (free space left of its window)"},
+    Sim{title:"Skill-Simulator表示中の配置",auto:c"自動調整（ウィンドウ左の空き領域）"},
+    Sim{title:"Skill-Simulator 打开时的布局",auto:c"自动适配（窗口左侧空白）"},
+    Sim{title:"Skill-Simulator 開啟時的配置",auto:c"自動調整（視窗左側空白）"},
+    Sim{title:"Layout bei geöffnetem Skill-Simulator",auto:c"Automatisch (freier Bereich links vom Fenster)"},
+    Sim{title:"Disposition avec Skill-Simulator ouvert",auto:c"Ajustement auto (espace libre à gauche de la fenêtre)"},
+    Sim{title:"Layout con Skill-Simulator aperto",auto:c"Adatta automaticamente (spazio libero a sinistra)"},
+    Sim{title:"Diseño con Skill-Simulator abierto",auto:c"Ajuste automático (espacio libre a la izquierda)"},
+];

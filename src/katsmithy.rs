@@ -61,14 +61,19 @@ pub fn discover_once(){
      if !crate::wishlist_view::found()&&data_len<=16*1024*1024&&data.checked_add(data_len).is_some_and(|n|n<=total){
       if let Some(start)=base.checked_add(data){if readable(start,data_len){crate::wishlist_view::locate(start,data_len);}}
      }
+     // Skill-Simulator publishes its window frame the same way.
+     if !crate::sksim_view::found()&&data_len<=16*1024*1024&&data.checked_add(data_len).is_some_and(|n|n<=total){
+      if let Some(start)=base.checked_add(data){if readable(start,data_len){crate::sksim_view::locate(start,data_len);}}
+     }
     }}
    }
   }
-  if MODULE.load(Ordering::Acquire)!=0&&crate::wishlist_view::found(){break}
+  if MODULE.load(Ordering::Acquire)!=0&&crate::wishlist_view::found()&&crate::sksim_view::found(){break}
   if next>=0x100000000{break}at=next as u32;
  }
  if MODULE.load(Ordering::Acquire)==0{crate::log_info!("[better-skillinfo] KatSmithy not detected");}
  if !crate::wishlist_view::found(){crate::log_info!("[better-skillinfo] Wishlist skill view not detected");}
+ if !crate::sksim_view::found(){crate::log_info!("[better-skillinfo] Skill-Simulator window block not detected");}
  crate::log_info!("[better-skillinfo] module discovery complete");
 }
 /// Armor skill points of one KatSmithy/Wishlist piece: series ID and native kind 1..5.

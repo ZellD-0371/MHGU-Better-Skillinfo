@@ -103,7 +103,7 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
         if let Some(other)=selected.compared[i]{
             title.push(' ');value(&mut title,&mut left_values,points,true);
             title.push_str(" → ");value(&mut title,&mut left_values,other,true);
-        }else if tree.gu_id!=203{title.push(' ');value(&mut title,&mut left_values,points,true);}
+        }else if tree.gu_id!=203&&selected.projection!=crate::Projection::SimulatorSkill{title.push(' ');value(&mut title,&mut left_values,points,true);}
         if !selected.projection.shows_totals(){
             // Informational views omit hunter totals but retain the item skill values.
             value_lines(&mut rows,&title,&left_values,width,point_color(points));
@@ -121,9 +121,29 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
             let after=if selected.projection==crate::Projection::CurrentOnly{totals[i]}else{selected.total_after[i]};
             crate::comparison::effect_total_basis(totals[i],after)
         }else{None};
+        // Skill-Simulator rows that stand for one threshold: an extra-skill row names it,
+        // a set total shows the strongest one it reaches (or the next one).
+        let only=match selected.projection{
+            crate::Projection::SimulatorSkill if points!=0=>Some(points),
+            crate::Projection::SimulatorSet if tree.gu_id!=203=>{
+                let thresholds:Vec<i32>=tree.effects.iter().map(|e|e.points).collect();
+                Some(crate::sksim_model::set_threshold(points,&thresholds).unwrap_or(0))
+            }
+            _=>None,
+        };
         for negative in [false,true]{
             let sign=if negative{-1}else{1};
-            let visible=if let Some(n)=basis{effect_visible(n,sign,c.show_all)}else{
+            if let Some(t)=only{
+                for effect in tree.effects.iter().filter(|e|t!=0&&e.points==t&&(e.points<0)==negative){
+                    let mut effect_line=Text::new();
+                    let _=write!(effect_line,"{} {:+}: {}",if negative{"≤"}else{"≥"},effect.points,language.text(effect.name));
+                    lines(&mut rows,effect_line.str(),width,if negative{color(1.,0.65,0.6)}else{color(0.85,0.92,1.)});
+                    if c.descriptions{lines(&mut rows,language.text(effect.description),width,color(1.,1.,1.));}
+                }
+                continue
+            }
+            // A skill picked in Skill-Simulator is a reference: every threshold, both signs.
+            let visible=selected.projection==crate::Projection::SimulatorSkill||if let Some(n)=basis{effect_visible(n,sign,c.show_all)}else{
                 effect_visible(if tree.gu_id==203{1}else{points},sign,c.show_all)
                     ||selected.compared[i].is_some_and(|p|effect_visible(p,sign,c.show_all))
             };
@@ -144,11 +164,15 @@ fn build(c:Config,selected:&Content,width:f32,capacity:usize,totals:[Option<i32>
     paginate(&groups,capacity)
 }
 
-fn hud(base:u32,installed:bool)->Option<crate::layout::HudViewport>{
+/// The window size the panel is laid out in (ImGui's main viewport, else DisplaySize).
+pub fn logical_size()->Option<(f32,f32)>{
     let viewport=unsafe{forge::sys::imgui::igGetMainViewport()};
     let size=if viewport.is_null(){(0.,0.)}else{unsafe{((*viewport).Size.x,(*viewport).Size.y)}};
     let display=imgui::get_io().DisplaySize;
-    let (logical_width,logical_height)=crate::layout::viewport_size(size,(display.x,display.y))?;
+    crate::layout::viewport_size(size,(display.x,display.y))
+}
+fn hud(base:u32,installed:bool)->Option<crate::layout::HudViewport>{
+    let (logical_width,logical_height)=logical_size()?;
     (if installed{crate::layout::hud_size(base)}else{None})
         .and_then(|(rw,rh,uw)|crate::layout::hud_viewport(logical_width,logical_height,rw,rh,uw))
         .or_else(||crate::layout::native_viewport(logical_width,logical_height))
@@ -246,8 +270,22 @@ fn paint(d:imgui::DrawList,x:f32,y:f32,p:&Prepared){
     if p.count>1{
         d.add_line(ImVec2{x:left,y:top},ImVec2{x:left+p.width,y:top},rule,thick);top+=1.+p.spacing;
         let mut counter=Text::new();let _=write!(counter,"◀ {} / {} ▶",p.page+1,p.count);
-        let w=imgui::calc_text_size(counter.str(),false,0.).x;
-        text_at(d,font,size,left+((p.width-w)*0.5).max(0.),top,color(1.,0.85,0.3),counter.str());
+        let w=imgui::calc_text_size(counter.str(),false,0.).x;let start=left+((p.width-w)*0.5).max(0.);
+        text_at(d,font,size,start,top,color(1.,0.85,0.3),counter.str());
+        // Recomp's free pointer (while Skill-Simulator or Wishlist has it): the arrows
+        // page like the paging keys, with a gold frame under the pointer.
+        if let Some((mx,my,click))=crate::mouse::pointer(){
+            let arrow=imgui::calc_text_size("◀",false,0.).x;
+            let boxes=crate::mouse_model::arrow_boxes(start,top,size,arrow,w,3.*p.scale);
+            for (direction,b) in [(-1,boxes[0]),(1,boxes[1])]{
+                if !crate::mouse_model::inside(mx,my,b){continue}
+                d.add_rect(ImVec2{x:b.0,y:b.1},ImVec2{x:b.2,y:b.3},0xff40cfff,2.*p.scale,thick,forge::sys::imgui::ImDrawFlags::None);
+                if click{STATE.with(|s|{
+                    let next=crate::navigation::page(s.page,s.page_count,direction);
+                    if next!=s.page{crate::sound::request();s.page=next;}
+                });}
+            }
+        }
     }
 }
 
@@ -282,7 +320,33 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
     let (mut panel_x,mut panel_y)=hud.panel_position(selected.center,c.x as f32,c.y as f32,c.width as f32);
     // ImGui uses absolute viewport coordinates, while HUD geometry is local.
     if !viewport.is_null(){unsafe{panel_x+=(*viewport).Pos.x;panel_y+=(*viewport).Pos.y;}}
-    let max_height=(c.max_height as f32).min(720.-c.y as f32-16.)*scale;
+    let mut max_height=(c.max_height as f32).min(720.-c.y as f32-16.)*scale;
+    // Skill-Simulator's window covers most of the screen: its own layout profile while
+    // it is open. Auto fit uses the band left of the window; when that band is too
+    // narrow, Skill-Simulator's own content covers the column beside the cursor, and
+    // anything else keeps the usual layout.
+    if let Some(sim)=crate::sksim_view::current(STATE.with(|s|s.frame)){
+        let from_sim=matches!(selected.projection,crate::Projection::SimulatorSkill|crate::Projection::SimulatorEquipment);
+        let margin=8.*scale;
+        let fit=if c.sim_auto{
+            crate::sksim_model::auto_fit(sim.window,margin,160.*scale,500.*scale).or_else(||{
+                let cover=crate::sksim_model::cover_area(sim.area).and_then(|id|crate::sksim_model::area_rect(&sim,id));
+                cover.filter(|_|from_sim).map(|r|(r.left+margin,r.top+margin,r.right-r.left-margin*2.,r.bottom-r.top-margin*2.))
+            })
+        }else{
+            let (x,y)=hud.panel_position(false,c.sim_x as f32,c.sim_y as f32,c.sim_width as f32);
+            Some((x,y,c.sim_width as f32*scale,(c.sim_height as f32).min(720.-c.sim_y as f32)*scale))
+        };
+        match fit{
+            Some((x,y,width,height))=>{
+                panel_x=x;panel_y=y;max_height=height;
+                c.width=((width/scale) as i32).max(1);c.font_size=c.sim_font_size;
+            }
+            // No room beside or inside the window for the simulator's own subject.
+            None if from_sim=>return,
+            None=>{}
+        }
+    }
     if selected.preview{
         // Draw the effective outer bounds independently of the panel itself.
         // This does not create an input target or change layout/pagination.
