@@ -30,6 +30,7 @@ mod details;
 mod equipment_context;
 mod equipment_skills;
 mod comparison;
+mod purplelib;
 mod sockets;
 use core::{cell::UnsafeCell,ffi::c_void,fmt::{self,Write},ptr,sync::atomic::{AtomicBool,Ordering}};
 use forge::{imgui,log::prelude::{warn,error},sys::imgui::{ImVec2,ImVec4,ImGuiSliderFlags,ImGuiSelectableFlags}};
@@ -298,6 +299,16 @@ fn content(s:&State,allow_preview:bool)->Option<Content>{
     Some(Content{points,compared:[None;32],total_before:[None;32],total_after:[None;32],count:d.points.len(),key:0x4445434f00000000|index as u64,preview:false,center:false,incompatible:false,projection:Projection::AddDecoration})
 }
 fn push_font(size:f32)->bool{if let Some(f)=unsafe{FONT}{imgui::push_font(&f,Some(size));true}else{false}}
+/// Pushes the panel font at `px` screen pixels. The size is already HUD-scaled, but a host
+/// may scale ImGui fonts for the display as well: MHGU Recomp sets style.FontScaleDpi to
+/// height / 720, which squared the size (2.5x too large on a Retina MacBook). Measure the
+/// size ImGui made and push again with that factor taken out.
+pub(crate) fn push_font_px(px:f32)->bool{
+    if !push_font(px){return false}
+    let got=unsafe{forge::sys::imgui::igGetFontSize()};
+    if got.is_finite()&&got>0.&&(got-px).abs()>0.01*px{imgui::pop_font();return push_font(px*px/got)}
+    true
+}
 
 fn color(r:f32,g:f32,b:f32)->ImVec4{ImVec4{x:r,y:g,z:b,w:1.}}
 

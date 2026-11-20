@@ -302,7 +302,7 @@ pub fn render_wishlist(){
     let scale=hud.scale;
     let d=imgui::DrawList::foreground();if d.raw().is_null(){return}
     let (x,y,max_height)=crate::wishlist_model::placement(piece,c.width as f32*scale,c.max_height as f32*scale);
-    let pushed=crate::push_font(c.font_size as f32*scale);
+    let pushed=crate::push_font_px(c.font_size as f32*scale);
     if let Some(p)=prepare(c,&selected,[None;32],scale,max_height){paint(d,x,y,&p);}
     if pushed{imgui::pop_font();}
 }
@@ -364,7 +364,7 @@ pub fn render(mut c:Config,mut selected:Content,base:u32,installed:bool){
             selected.total_after[i]=totals[i].map(|n|crate::comparison::replacement(n,*before,after));
         }
     }
-    let pushed=crate::push_font(c.font_size as f32*scale);
+    let pushed=crate::push_font_px(c.font_size as f32*scale);
     let Some(p)=prepare(c,&selected,totals,scale,max_height) else{if pushed{imgui::pop_font();}return};
     // A plain window keeps native-screen panels on the usual ImGui window layer.
     imgui::set_next_window_pos(ImVec2{x:panel_x,y:panel_y},ImGuiCond::Always,ImVec2{x:0.,y:0.});
