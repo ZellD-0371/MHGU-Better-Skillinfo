@@ -583,7 +583,7 @@
   "Cazador polar"
  ],
  [
-  "추위에 강해지고, 추운 곳에서 파워 업 한다. 쿨러드링크를 마시면…",
+  "추위에 강해지고, 추운 곳에서 파워 업 한다. 쿨드링크를 마시면…",
   "Powers you up in the cold. If you drink a Cool Drink...",
   "寒さに強く、寒い場所ではパワーアップする。クーラードリンクを飲むと…",
   "不畏寒冷，在寒冷的地方会变得更强。如果喝了冷饮的话……",
@@ -748,7 +748,7 @@
   "Bioinvestigador"
  ],
  [
-  "비료구슬 조합 성공률 100%, 비료구슬 사용 시 지역 이동 성공률 100%, 일부 아이템 사용 불가·폭파 피해 상태가 되지 않는다.",
+  "비료옥 조합 성공률 100%, 비료옥 사용 시 지역 이동 성공률 100%, 일부 아이템 사용 불가·폭파 피해 상태가 되지 않는다.",
   "Dung Bomb combination success and monster-area relocation chances become 100%. Prevents Stench and Blastblight.",
   "こやし玉の調合成功率とエリア移動成功率が100%になる。悪臭・爆破やられを防ぐ。",
   "肥料弹调和成功率及驱赶怪物换区成功率均为100%。免疫恶臭和爆破异常。",
@@ -770,7 +770,7 @@
   "Biólogo"
  ],
  [
-  "비료구슬 조합 성공률 100%, 비료구슬 사용 시 지역 이동 성공률 100%, 일부 아이템 사용 불가·폭파 피해 상태가 되지 않고, 광룡증 발병 관련 시간을 완화한다.",
+  "비료옥 조합 성공률 100%, 비료옥 사용 시 지역 이동 성공률 100%, 일부 아이템 사용 불가·폭파 피해 상태가 되지 않고, 광룡증 발병 관련 시간을 완화한다.",
   "Dung Bomb combination success and monster-area relocation chances become 100%. Prevents Stench and Blastblight, and eases the timing of Frenzy Virus onset.",
   "こやし玉の調合成功率とエリア移動成功率が100%になる。悪臭・爆破やられを防ぎ、狂竜症の発症時間に関する効果も軽減する。",
   "肥料弹调和成功率及驱赶怪物换区成功率均为100%。免疫恶臭和爆破异常，并减轻狂龙病毒发病时间的影响。",
@@ -1221,7 +1221,7 @@
   "Aumenta la salud máxima en 50."
  ],
  [
-  "화내성",
+  "불 내성",
   "Fire Res",
   "火耐性",
   "火耐性",
@@ -1232,7 +1232,7 @@
   "Res. fuego"
  ],
  [
-  "화내성 약화",
+  "불 내성 약화",
   "Fire Res -20",
   "火耐性弱化",
   "火耐性弱化",
@@ -1243,7 +1243,7 @@
   "Resist. fuego -20"
  ],
  [
-  "화내성이 20 내려간다.",
+  "불 내성이 20 내려간다.",
   "Decreases Fire Resistance by 20.",
   "火耐性が２０ダウンする。",
   "火耐性减少20。",
@@ -1254,7 +1254,7 @@
   "Reduce la resistencia al fuego en 20."
  ],
  [
-  "화내성【소】",
+  "불 내성【소】",
   "Fire Res +15",
   "火耐性【小】",
   "火耐性【小】",
@@ -1265,7 +1265,7 @@
   "Resist. fuego +15"
  ],
  [
-  "화내성이 15 올라간다.",
+  "불 내성이 15 올라간다.",
   "Increases Fire Resistance by 15.",
   "火耐性が１５アップする。",
   "火耐性增加15。",
@@ -1276,7 +1276,7 @@
   "Aumenta la resistencia al fuego en 15."
  ],
  [
-  "화내성【대】",
+  "불 내성【대】",
   "Fire Res +20",
   "火耐性【大】",
   "火耐性【大】",
@@ -1287,7 +1287,7 @@
   "Resist. fuego +20"
  ],
  [
-  "화내성이 20 올라간다.",
+  "불 내성이 20 올라간다.",
   "Increases Fire Resistance by 20.",
   "火耐性が２０アップする。",
   "火耐性增加20。",
@@ -1298,7 +1298,7 @@
   "Aumenta la resistencia al fuego en 20."
  ],
  [
-  "수내성",
+  "물 내성",
   "Water Res",
   "水耐性",
   "水耐性",
@@ -1309,7 +1309,7 @@
   "Res. agua"
  ],
  [
-  "수내성 약화",
+  "물 내성 약화",
   "Water Res -20",
   "水耐性弱化",
   "水耐性弱化",
@@ -1320,7 +1320,7 @@
   "Resist. agua -20"
  ],
  [
-  "수내성이 20 내려간다.",
+  "물 내성이 20 내려간다.",
   "Decreases Water Resistance by 20.",
   "水耐性が２０ダウンする。",
   "水耐性减少20。",
@@ -1331,7 +1331,7 @@
   "Reduce la resistencia al agua en 20."
  ],
  [
-  "수내성【소】",
+  "물 내성【소】",
   "Water Res +15",
   "水耐性【小】",
   "水耐性【小】",
@@ -1342,7 +1342,7 @@
   "Resist. agua +15"
  ],
  [
-  "수내성이 15 올라간다.",
+  "물 내성이 15 올라간다.",
   "Increases Water Resistance by 15.",
   "水耐性が１５アップする。",
   "水耐性增加15。",
@@ -1353,7 +1353,7 @@
   "Aumenta la resistencia al agua en 15."
  ],
  [
-  "수내성【대】",
+  "물 내성【대】",
   "Water Res +20",
   "水耐性【大】",
   "水耐性【大】",
@@ -1364,7 +1364,7 @@
   "Resist. agua +20"
  ],
  [
-  "수내성이 20 올라간다.",
+  "물 내성이 20 올라간다.",
   "Increases Water Resistance by 20.",
   "水耐性が２０アップする。",
   "水耐性增加20。",
@@ -1375,7 +1375,7 @@
   "Aumenta la resistencia al agua en 20."
  ],
  [
-  "뇌내성",
+  "번개 내성",
   "Thunder Res",
   "雷耐性",
   "雷耐性",
@@ -1386,7 +1386,7 @@
   "Res. rayo"
  ],
  [
-  "뇌내성 약화",
+  "번개 내성 약화",
   "Thunder Res -20",
   "雷耐性弱化",
   "雷耐性弱化",
@@ -1397,7 +1397,7 @@
   "Resist. rayo -20"
  ],
  [
-  "뇌내성이 20 내려간다.",
+  "번개 내성이 20 내려간다.",
   "Decreases Thunder Resistance by 20.",
   "雷耐性が２０ダウンする。",
   "雷耐性减少20。",
@@ -1408,7 +1408,7 @@
   "Reduce la resistencia al rayo en 20."
  ],
  [
-  "뇌내성【소】",
+  "번개 내성【소】",
   "Thunder Res +15",
   "雷耐性【小】",
   "雷耐性【小】",
@@ -1419,7 +1419,7 @@
   "Resist. rayo +15"
  ],
  [
-  "뇌내성이 15 올라간다.",
+  "번개 내성이 15 올라간다.",
   "Increases Thunder Resistance by 15.",
   "雷耐性が１５アップする。",
   "雷耐性增加15。",
@@ -1430,7 +1430,7 @@
   "Aumenta la resistencia al rayo en 15."
  ],
  [
-  "뇌내성【대】",
+  "번개 내성【대】",
   "Thunder Res +20",
   "雷耐性【大】",
   "雷耐性【大】",
@@ -1441,7 +1441,7 @@
   "Resist. rayo +20"
  ],
  [
-  "뇌내성이 20 올라간다.",
+  "번개 내성이 20 올라간다.",
   "Increases Thunder Resistance by 20.",
   "雷耐性が２０アップする。",
   "雷耐性增加20。",
@@ -1452,7 +1452,7 @@
   "Aumenta la resistencia al rayo en 20."
  ],
  [
-  "빙내성",
+  "얼음 내성",
   "Ice Res",
   "氷耐性",
   "冰耐性",
@@ -1463,7 +1463,7 @@
   "Res. hielo"
  ],
  [
-  "빙내성 약화",
+  "얼음 내성 약화",
   "Ice Res -20",
   "氷耐性弱化",
   "冰耐性弱化",
@@ -1474,7 +1474,7 @@
   "Resist. hielo -20"
  ],
  [
-  "빙내성이 20 내려간다.",
+  "얼음 내성이 20 내려간다.",
   "Decreases Ice Resistance by 20.",
   "氷耐性が２０ダウンする。",
   "冰耐性减少20。",
@@ -1485,7 +1485,7 @@
   "Reduce la resistencia al hielo en 20."
  ],
  [
-  "빙내성【소】",
+  "얼음 내성【소】",
   "Ice Res +15",
   "氷耐性【小】",
   "冰耐性【小】",
@@ -1496,7 +1496,7 @@
   "Resist. hielo +15"
  ],
  [
-  "빙내성이 15 올라간다.",
+  "얼음 내성이 15 올라간다.",
   "Increases Ice Resistance by 15.",
   "氷耐性が１５アップする。",
   "冰耐性增加15。",
@@ -1507,7 +1507,7 @@
   "Aumenta la resistencia al hielo en 15."
  ],
  [
-  "빙내성【대】",
+  "얼음 내성【대】",
   "Ice Res +20",
   "氷耐性【大】",
   "冰耐性【大】",
@@ -1518,7 +1518,7 @@
   "Resist. hielo +20"
  ],
  [
-  "빙내성이 20 올라간다.",
+  "얼음 내성이 20 올라간다.",
   "Increases Ice Resistance by 20.",
   "氷耐性が２０アップする。",
   "冰耐性增加20。",
@@ -1529,7 +1529,7 @@
   "Aumenta la resistencia al hielo en 20."
  ],
  [
-  "용내성",
+  "용 내성",
   "Dragon Res",
   "龍耐性",
   "龙耐性",
@@ -1540,7 +1540,7 @@
   "Res. draco"
  ],
  [
-  "용내성 약화",
+  "용 내성 약화",
   "Dragon Res -20",
   "龍耐性弱化",
   "龙耐性弱化",
@@ -1551,7 +1551,7 @@
   "Resist. draco -20"
  ],
  [
-  "용내성이 20 내려간다.",
+  "용 내성이 20 내려간다.",
   "Decreases Dragon Resistance by 20.",
   "龍耐性が２０ダウンする。",
   "龙耐性减少20。",
@@ -1562,7 +1562,7 @@
   "Reduce la resistencia al draco en 20."
  ],
  [
-  "용내성【소】",
+  "용 내성【소】",
   "Dragon Res +15",
   "龍耐性【小】",
   "龙耐性【小】",
@@ -1573,7 +1573,7 @@
   "Resist. draco +15"
  ],
  [
-  "용내성이 15 올라간다.",
+  "용 내성이 15 올라간다.",
   "Increases Dragon Resistance by 15.",
   "龍耐性が１５アップする。",
   "龙耐性增加15。",
@@ -1584,7 +1584,7 @@
   "Aumenta la resistencia al draco en 15."
  ],
  [
-  "용내성【대】",
+  "용 내성【대】",
   "Dragon Res +20",
   "龍耐性【大】",
   "龙耐性【大】",
@@ -1595,7 +1595,7 @@
   "Resist. draco +20"
  ],
  [
-  "용내성이 20 올라간다.",
+  "용 내성이 20 올라간다.",
   "Increases Dragon Resistance by 20.",
   "龍耐性が２０アップする。",
   "龙耐性增加20。",
@@ -1639,7 +1639,7 @@
   "Anula todas las plagas elementales (fuego, agua, rayo, hielo y draco)."
  ],
  [
-  "화속성 공격",
+  "불속성 공격",
   "Fire Atk",
   "火属性攻撃",
   "火属性攻击",
@@ -1650,7 +1650,7 @@
   "Atq. fuego"
  ],
  [
-  "화속성공격약화",
+  "불속성 공격 약화",
   "Fire Atk Down",
   "火属性攻撃弱化",
   "火属性攻击弱化",
@@ -1661,7 +1661,7 @@
   "Ataque fuego -1"
  ],
  [
-  "화속성 무기와 화염탄 계열의 속성 수치가 0.75배가 된다.",
+  "불속성 무기와 화염탄 계열의 속성 수치가 0.75배가 된다.",
   "Multiplies the elemental value of Fire weapons and Flaming Ammo by 0.75.",
   "火属性武器と火炎弾系統の属性値が0.75倍になる。",
   "火属性武器及火炎弹系的属性值变为0.75倍。",
@@ -1672,7 +1672,7 @@
   "Multiplica por 0.75 el valor elemental de las armas de fuego y la munición de llama."
  ],
  [
-  "화속성공격강화+1",
+  "불속성 공격 강화+1",
   "Fire Atk +1",
   "火属性攻撃強化+1",
   "火属性攻击强化+1",
@@ -1683,7 +1683,7 @@
   "Ataque fuego +1"
  ],
  [
-  "화속성 무기와 화염탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
+  "불속성 무기와 화염탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
   "Increases the elemental value of Fire weapons and Flaming Ammo by 4, and multiplies it by 1.05.",
   "火属性武器と火炎弾系統の属性値が4上がり、さらに1.05倍になる。",
   "火属性武器及火炎弹系的属性值增加4并乘以1.05。",
@@ -1694,7 +1694,7 @@
   "Aumenta en 4 el valor elemental de las armas de fuego y la munición de llama y después lo multiplica por 1.05."
  ],
  [
-  "화속성공격강화+2",
+  "불속성 공격 강화+2",
   "Fire Atk +2",
   "火属性攻撃強化+2",
   "火属性攻击强化+2",
@@ -1705,7 +1705,7 @@
   "Ataque fuego +2"
  ],
  [
-  "화속성 무기와 화염탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
+  "불속성 무기와 화염탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
   "Increases the elemental value of Fire weapons and Flaming Ammo by 6, and multiplies it by 1.1.",
   "火属性武器と火炎弾系統の属性値が6上がり、さらに1.1倍になる。",
   "火属性武器及火炎弹系的属性值增加6并乘以1.1。",
@@ -1716,7 +1716,7 @@
   "Aumenta en 6 el valor elemental de las armas de fuego y la munición de llama y después lo multiplica por 1.1."
  ],
  [
-  "수속성 공격",
+  "물속성 공격",
   "Water Atk",
   "水属性攻撃",
   "水属性攻击",
@@ -1727,7 +1727,7 @@
   "Atq. agua"
  ],
  [
-  "수속성공격약화",
+  "물속성 공격 약화",
   "Water Atk Down",
   "水属性攻撃弱化",
   "水属性攻击弱化",
@@ -1738,7 +1738,7 @@
   "Ataque agua -1"
  ],
  [
-  "수속성 무기와 수냉탄 계열의 속성 수치가 0.75배가 된다.",
+  "물속성 무기와 수냉탄 계열의 속성 수치가 0.75배가 된다.",
   "Multiplies the elemental value of Water weapons and Water Ammo by 0.75.",
   "水属性武器と水冷弾系統の属性値が0.75倍になる。",
   "水属性武器及水冷弹系的属性值变为0.75倍。",
@@ -1749,7 +1749,7 @@
   "Multiplica por 0.75 el valor elemental de las armas de agua y la munición de agua."
  ],
  [
-  "수속성공격강화+1",
+  "물속성 공격 강화+1",
   "Water Atk +1",
   "水属性攻撃強化+1",
   "水属性攻击强化+1",
@@ -1760,7 +1760,7 @@
   "Ataque agua +1"
  ],
  [
-  "수속성 무기와 수냉탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
+  "물속성 무기와 수냉탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
   "Increases the elemental value of Water weapons and Water Ammo by 4, and multiplies it by 1.05.",
   "水属性武器と水冷弾系統の属性値が4上がり、さらに1.05倍になる。",
   "水属性武器及水冷弹系的属性值增加4并乘以1.05。",
@@ -1771,7 +1771,7 @@
   "Aumenta en 4 el valor elemental de las armas de agua y la munición de agua y después lo multiplica por 1.05."
  ],
  [
-  "수속성공격강화+2",
+  "물속성 공격 강화+2",
   "Water Atk +2",
   "水属性攻撃強化+2",
   "水属性攻击强化+2",
@@ -1782,7 +1782,7 @@
   "Ataque agua +2"
  ],
  [
-  "수속성 무기와 수냉탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
+  "물속성 무기와 수냉탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
   "Increases the elemental value of Water weapons and Water Ammo by 6, and multiplies it by 1.1.",
   "水属性武器と水冷弾系統の属性値が6上がり、さらに1.1倍になる。",
   "水属性武器及水冷弹系的属性值增加6并乘以1.1。",
@@ -1793,7 +1793,7 @@
   "Aumenta en 6 el valor elemental de las armas de agua y la munición de agua y después lo multiplica por 1.1."
  ],
  [
-  "뇌속성 공격",
+  "번개속성 공격",
   "Thunder Atk",
   "雷属性攻撃",
   "雷属性攻击",
@@ -1804,7 +1804,7 @@
   "Atq. rayo"
  ],
  [
-  "뇌속성공격약화",
+  "번개속성 공격 약화",
   "Thunder Atk Down",
   "雷属性攻撃弱化",
   "雷属性攻击弱化",
@@ -1815,7 +1815,7 @@
   "Ataque rayo -1"
  ],
  [
-  "뇌속성 무기와 전격탄 계열의 속성 수치가 0.75배가 된다.",
+  "번개속성 무기와 전격탄 계열의 속성 수치가 0.75배가 된다.",
   "Multiplies the elemental value of Thunder weapons and Thunder Ammo by 0.75.",
   "雷属性武器と電撃弾系統の属性値が0.75倍になる。",
   "雷属性武器及电击弹系的属性值变为0.75倍。",
@@ -1826,7 +1826,7 @@
   "Multiplica por 0.75 el valor elemental de las armas de rayo y la munición de rayo."
  ],
  [
-  "뇌속성공격강화+1",
+  "번개속성 공격 강화+1",
   "Thunder Atk +1",
   "雷属性攻撃強化+1",
   "雷属性攻击强化+1",
@@ -1837,7 +1837,7 @@
   "Ataque rayo +1"
  ],
  [
-  "뇌속성 무기와 전격탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
+  "번개속성 무기와 전격탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
   "Increases the elemental value of Thunder weapons and Thunder Ammo by 4, and multiplies it by 1.05.",
   "雷属性武器と電撃弾系統の属性値が4上がり、さらに1.05倍になる。",
   "雷属性武器及电击弹系的属性值增加4并乘以1.05。",
@@ -1848,7 +1848,7 @@
   "Aumenta en 4 el valor elemental de las armas de rayo y la munición de rayo y después lo multiplica por 1.05."
  ],
  [
-  "뇌속성공격강화+2",
+  "번개속성 공격 강화+2",
   "Thunder Atk +2",
   "雷属性攻撃強化+2",
   "雷属性攻击强化+2",
@@ -1859,7 +1859,7 @@
   "Ataque rayo +2"
  ],
  [
-  "뇌속성 무기와 전격탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
+  "번개속성 무기와 전격탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
   "Increases the elemental value of Thunder weapons and Thunder Ammo by 6, and multiplies it by 1.1.",
   "雷属性武器と電撃弾系統の属性値が6上がり、さらに1.1倍になる。",
   "雷属性武器及电击弹系的属性值增加6并乘以1.1。",
@@ -1870,7 +1870,7 @@
   "Aumenta en 6 el valor elemental de las armas de rayo y la munición de rayo y después lo multiplica por 1.1."
  ],
  [
-  "빙속성 공격",
+  "얼음속성 공격",
   "Ice Atk",
   "氷属性攻撃",
   "冰属性攻击",
@@ -1881,7 +1881,7 @@
   "Atq. hielo"
  ],
  [
-  "빙속성공격약화",
+  "얼음속성 공격 약화",
   "Ice Atk Down",
   "氷属性攻撃弱化",
   "冰属性攻击弱化",
@@ -1892,7 +1892,7 @@
   "Ataque hielo -1"
  ],
  [
-  "빙속성 무기와 빙결탄 계열의 속성 수치가 0.75배가 된다.",
+  "얼음속성 무기와 빙결탄 계열의 속성 수치가 0.75배가 된다.",
   "Multiplies the elemental value of Ice weapons and Freeze Ammo by 0.75.",
   "氷属性武器と氷結弾系統の属性値が0.75倍になる。",
   "冰属性武器及冰结弹系的属性值变为0.75倍。",
@@ -1903,7 +1903,7 @@
   "Multiplica por 0.75 el valor elemental de las armas de hielo y la munición de hielo."
  ],
  [
-  "빙속성공격강화+1",
+  "얼음속성 공격 강화+1",
   "Ice Atk +1",
   "氷属性攻撃強化+1",
   "冰属性攻击强化+1",
@@ -1914,7 +1914,7 @@
   "Ataque hielo +1"
  ],
  [
-  "빙속성 무기와 빙결탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
+  "얼음속성 무기와 빙결탄 계열의 속성 수치가 4 증가하고, 속성 수치가 1.05배가 된다.",
   "Increases the elemental value of Ice weapons and Freeze Ammo by 4, and multiplies it by 1.05.",
   "氷属性武器と氷結弾系統の属性値が4上がり、さらに1.05倍になる。",
   "冰属性武器及冰结弹系的属性值增加4并乘以1.05。",
@@ -1925,7 +1925,7 @@
   "Aumenta en 4 el valor elemental de las armas de hielo y la munición de hielo y después lo multiplica por 1.05."
  ],
  [
-  "빙속성공격강화+2",
+  "얼음속성 공격 강화+2",
   "Ice Atk +2",
   "氷属性攻撃強化+2",
   "冰属性攻击强化+2",
@@ -1936,7 +1936,7 @@
   "Ataque hielo +2"
  ],
  [
-  "빙속성 무기와 빙결탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
+  "얼음속성 무기와 빙결탄 계열의 속성 수치가 6 증가하고, 속성 수치가 1.1배가 된다.",
   "Increases the elemental value of Ice weapons and Freeze Ammo by 6, and multiplies it by 1.1.",
   "氷属性武器と氷結弾系統の属性値が6上がり、さらに1.1倍になる。",
   "冰属性武器及冰结弹系的属性值增加6并乘以1.1。",
@@ -1958,7 +1958,7 @@
   "Atq. draco"
  ],
  [
-  "용속성공격약화",
+  "용속성 공격 약화",
   "Dragon Atk Down",
   "龍属性攻撃弱化",
   "龙属性攻击弱化",
@@ -1980,7 +1980,7 @@
   "Multiplica por 0.75 el valor elemental de las armas de dragón y la munición de dragón."
  ],
  [
-  "용속성공격강화+1",
+  "용속성 공격 강화+1",
   "Dragon Atk +1",
   "龍属性攻撃強化+1",
   "龙属性攻击强化+1",
@@ -2002,7 +2002,7 @@
   "Aumenta en 4 el valor elemental de las armas de dragón y la munición de dragón y después lo multiplica por 1.05."
  ],
  [
-  "용속성공격강화+2",
+  "용속성 공격 강화+2",
   "Dragon Atk +2",
   "龍属性攻撃強化+2",
   "龙属性攻击强化+2",
@@ -2222,7 +2222,7 @@
   "Artesano"
  ],
  [
-  "예리도 레벨+1",
+  "장인+1",
   "Sharpness +1",
   "斬れ味レベル+1",
   "锋利度等级+1",
@@ -2244,7 +2244,7 @@
   "Aumenta el indicador máximo de filo en 20."
  ],
  [
-  "예리도 레벨+2",
+  "장인+2",
   "Sharpness +2",
   "斬れ味レベル+2",
   "锋利度等级+2",
@@ -2299,7 +2299,7 @@
   "Dobla la velocidad de pérdida de afilado del arma."
  ],
  [
-  "업물",
+  "명검",
   "Razor Sharp",
   "業物",
   "利刃",
@@ -2387,7 +2387,7 @@
   "Amolador"
  ],
  [
-  "강인연마",
+  "칼날 연마",
   "Heavy Polish",
   "剛刃研磨",
   "刚刃打磨",
@@ -2442,7 +2442,7 @@
   "Según el filo (verde/amarillo/naranja o rojo), los multiplicadores de daño pasan respectivamente a 1,1/1,15/1,2."
  ],
  [
-  "발도 회심",
+  "발도술【기】",
   "Crit Draw",
   "抜刀会心",
   "拔刀会心",
@@ -2475,7 +2475,7 @@
   "Aumenta la afinidad con todos los ataques de desenfundadura en un 100%."
  ],
  [
-  "발도 감기",
+  "발도술【힘】",
   "Punish Draw",
   "抜刀減気",
   "拔刀减气",
@@ -2497,7 +2497,7 @@
   "Pena inmediata"
  ],
  [
-  "절단 무기의 발도 공격 시 공격력이 5 증가하고, 기절 축적치 30과 감기 축적치 20이 추가된다.",
+  "절단 무기의 발도 공격 시 공격력이 5 증가하고, 기절 축적치 30과 멸기 축적치 20이 추가된다.",
   "Draw attacks with cutting weapons gain +5 Attack, 30 Stun buildup, and 20 Exhaust buildup.",
   "切断武器の抜刀攻撃で攻撃力+5、気絶値30と減気値20が追加される。",
   "切断系武器的拔刀攻击增加5点攻击力，并附加30点眩晕积蓄及20点疲劳积蓄。",
@@ -2574,7 +2574,7 @@
   "Con un monstruo grande enfurecido, envainar o esquivar con éxito al envainar en estilo Valor restaura filo con un 35% de probabilidad. Cantidad: gran espada 4 / espada larga 10 / martillo y cornamusa 11 / glaive insecto 12 / hacha espada 14 / espada y escudo, espadas dobles y lanza 15 / lanza pistola y hacha cargada 16."
  ],
  [
-  "칼비늘",
+  "칼날비늘",
   "Bladescale",
   "刃鱗",
   "刃鳞",
@@ -2585,7 +2585,7 @@
   "Filoescama"
  ],
  [
-  "칼비늘 연마",
+  "칼날비늘 연마",
   "Bladescale Hone",
   "刃鱗磨き",
   "刃鳞打磨",
@@ -2904,7 +2904,7 @@
   "Precisión"
  ],
  [
-  "치우침 억제-2",
+  "흔들림 억제-2",
   "Steadiness -2",
   "ブレ抑制-2",
   "抑制偏移-2",
@@ -2915,7 +2915,7 @@
   "Precisión -2"
  ],
  [
-  "사격시 치우침이 크게 증가한다.",
+  "사격시 흔들림이 크게 증가한다.",
   "Greatly increases Deviation when firing.",
   "射撃時のブレが大幅に増加する。",
   "大幅增加射击时的偏移。",
@@ -2926,7 +2926,7 @@
   "Aumenta mucho la desviación al disparar."
  ],
  [
-  "치우침 억제-1",
+  "흔들림 억제-1",
   "Steadiness -1",
   "ブレ抑制-1",
   "抑制偏移-1",
@@ -2937,7 +2937,7 @@
   "Precisión -1"
  ],
  [
-  "사격시 치우침이 증가한다.",
+  "사격시 흔들림이 증가한다.",
   "Increases Deviation when firing.",
   "射撃時のブレが増加する。",
   "增加射击时的偏移。",
@@ -2948,7 +2948,7 @@
   "Aumenta la desviación al disparar."
  ],
  [
-  "치우침 억제+1",
+  "흔들림 억제+1",
   "Steadiness +1",
   "ブレ抑制+1",
   "抑制偏移+1",
@@ -2959,7 +2959,7 @@
   "Precisión +1"
  ],
  [
-  "사격시 치우침이 감소한다.",
+  "사격시 흔들림이 감소한다.",
   "Decreases Deviation when firing.",
   "射撃時のブレが減少する。",
   "减轻射击时的偏移。",
@@ -2970,7 +2970,7 @@
   "Reduce la desviación al disparar."
  ],
  [
-  "치우침 억제+2",
+  "흔들림 억제+2",
   "Steadiness +2",
   "ブレ抑制+2",
   "抑制偏移+2",
@@ -2981,7 +2981,7 @@
   "Precisión +2"
  ],
  [
-  "사격시 치우침이 크게 감소한다.",
+  "사격시 흔들림이 크게 감소한다.",
   "Greatly decreases Deviation when firing.",
   "射撃時のブレが大幅に減少する。",
   "大幅减轻射击时的偏移。",
@@ -3003,7 +3003,7 @@
   "Disparo+"
  ],
  [
-  "통상탄・연사활UP",
+  "통상탄/연사화살 강화",
   "Normal/Rapid Up",
   "通常弾・連射矢UP",
   "通常弹･连射箭UP",
@@ -3014,7 +3014,7 @@
   "Normal/salva+"
  ],
  [
-  "통상탄・연사활의 피해량이 1.1배가 된다.",
+  "통상탄 연사활의 피해량이 1.1배가 된다.",
   "Increases damage from Normal Ammo and Rapid arrows by 10%.",
   "通常弾・連射矢のダメージが10%増加する。",
   "通常弹和连射箭的伤害提高10%。",
@@ -3036,7 +3036,7 @@
   "Perforar+"
  ],
  [
-  "관통탄・관통활UP",
+  "관통탄/관통화살 강화",
   "Pierce/Pierce Up",
   "貫通弾・貫通矢UP",
   "贯穿弹･贯穿箭UP",
@@ -3047,7 +3047,7 @@
   "Perforante+"
  ],
  [
-  "관통탄・관통활의 피해량이 1.1배가 된다.",
+  "관통탄 관통활의 피해량이 1.1배가 된다.",
   "Increases damage from Pierce Ammo and Pierce arrows by 10%.",
   "貫通弾・貫通矢のダメージが10%増加する。",
   "贯通弹和贯通箭的伤害提高10%。",
@@ -3069,7 +3069,7 @@
   "Perdigón+"
  ],
  [
-  "산탄・확산활UP",
+  "산탄/확산화살 강화",
   "Pellet/Spread Up",
   "散弾・拡散矢UP",
   "散弹･扩散箭UP",
@@ -3102,7 +3102,7 @@
   "Pesado+"
  ],
  [
-  "중격탄・중사활UP",
+  "중격탄/중사화살 강화",
   "Heavy/Heavy Up",
   "重撃弾・重射矢UP",
   "重击弹･重射箭UP",
@@ -3113,7 +3113,7 @@
   "Peso pesado+"
  ],
  [
-  "중격탄・중사활의 피해량이 1.1배가 된다.",
+  "중격탄 중사활의 피해량이 1.1배가 된다.",
   "Increases damage from Heavy Ammo and Heavy arrows by 10%.",
   "重撃弾・重射矢のダメージが10%増加する。",
   "重击弹和重射箭的伤害提高10%。",
@@ -3619,7 +3619,7 @@
   "Permite usar revestimientos de alcance cuando llevas un arco."
  ],
  [
-  "감기병 추가",
+  "멸기병 추가",
   "Exhaust C+",
   "減気瓶追加",
   "减气瓶追加",
@@ -3630,7 +3630,7 @@
   "Rv. fatiga"
  ],
  [
-  "감기병 추가",
+  "멸기병 추가",
   "Use Exhaust Coat",
   "減気ビン追加",
   "减气瓶追加",
@@ -3641,7 +3641,7 @@
   "Rev. fatiga"
  ],
  [
-  "활 장비 중, 감기병의 장착이 가능해진다.",
+  "활 장비 중, 멸기병의 장착이 가능해진다.",
   "Allows Exhaust coatings to be set when equipped with a Bow.",
   "弓装備中、減気ビンの装着を可能にする。",
   "使用弓时，可以装备减气瓶。",
@@ -3729,7 +3729,7 @@
   "Puntería"
  ],
  [
-  "탄도강화",
+  "탄도 강화",
   "Shot Booster",
   "弾導強化",
   "弹道强化",
@@ -4136,7 +4136,7 @@
   "Crítico +1"
  ],
  [
-  "초회심",
+  "슈퍼회심",
   "Critical Boost",
   "超会心",
   "超会心",
@@ -4191,7 +4191,7 @@
   "Al producirse un golpe de afinidad negativa, hay un 25% de probabilidad de fijar su multiplicador de daño físico en ×2."
  ],
  [
-  "차지 단축",
+  "집중",
   "FastCharge",
   "溜め短縮",
   "快速蓄力",
@@ -4400,7 +4400,7 @@
   "Reduce un 50% el consumo fijo de resistencia de esquivas, guardias, etc."
  ],
  [
-  "기력 회복",
+  "스태미나 급속 회복",
   "Stam Recov",
   "気力回復",
   "耐力回复",
@@ -4411,7 +4411,7 @@
   "Estad. forma"
  ],
  [
-  "스태미나회복지연",
+  "스태미나 회복 지연",
   "Stam Recov Down",
   "スタミナ回復遅延",
   "耐力回复迟缓",
@@ -4433,7 +4433,7 @@
   "Reduce un 25% la velocidad de recuperación natural de resistencia."
  ],
  [
-  "스태미나급속회복",
+  "스태미나 급속 회복",
   "Stam Recov Up",
   "スタミナ急速回復",
   "耐力急速回复",
@@ -4576,7 +4576,7 @@
   "Dis. evasión"
  ],
  [
-  "회피 거리UP",
+  "회피 거리 UP",
   "Evade Extender",
   "回避距離UP",
   "闪避距离UP",
@@ -4774,7 +4774,7 @@
   "Multiplica por 1.1 la acumulación de aturdimiento."
  ],
  [
-  "감기 공격",
+  "스태미나 탈취",
   "Stam Drain",
   "減気攻撃",
   "减气攻击",
@@ -4796,7 +4796,7 @@
   "Robarresistencia"
  ],
  [
-  "감기 축적치가 1.2배가 된다.",
+  "멸기 축적치가 1.2배가 된다.",
   "Multiplies Exhaust buildup by 1.2.",
   "減気値が1.2倍になる。",
   "疲劳积蓄值变为1.2倍。",
@@ -4807,7 +4807,7 @@
   "Multiplica por 1.2 la acumulación de agotamiento."
  ],
  [
-  "피리",
+  "피리 명인",
   "Maestro",
   "笛",
   "笛",
@@ -4895,7 +4895,7 @@
   "Los disparos y Fuego wyvern de la lanza pistola, las balistas y el cañón gigante infligen daño ×1.2; los viales de impacto del hacha cargada ×1.35; munición explosiva, etc. ×1.3. La recarga de Fuego wyvern baja a 90 s; el consumo de medidor de calor y sus fluctuaciones en la zona roja se reducen un 50%."
  ],
  [
-  "중격",
+  "파괴왕",
   "Destroyer",
   "重撃",
   "重击",
@@ -4928,7 +4928,7 @@
   "Los golpes a partes rompibles aumentan la acumulación de rotura un 30%."
  ],
  [
-  "폭탄 강화",
+  "보머",
   "Bomb Boost",
   "爆弾強化",
   "爆弹强化",
@@ -4961,7 +4961,7 @@
   "Aumenta el daño de las bombas un 30% y la acumulación explosiva un 20%. Las combinaciones de las bombas correspondientes tienen un 100% de éxito."
  ],
  [
-  "잠재력",
+  "재난대처능력",
   "Gloves Off",
   "本気",
   "全力",
@@ -5016,7 +5016,7 @@
   "Tras 5 min acumulados detectado por un monstruo grande o 180 de daño total recibido: durante 150 s, afinidad +50% y coste de resistencia -75%. No se acumula con Desafiante o Rendimiento máximo; prioridad: Desafiante > Rendimiento máximo > Poder latente."
  ],
  [
-  "투혼",
+  "도전자",
   "Spirit",
   "闘魂",
   "斗魂",
@@ -5071,7 +5071,7 @@
   "Unos 3 s después de que un monstruo grande de la misma zona se enfurezca: ataque +20, afinidad +15%. No se acumula con Rendimiento máximo o Poder latente; prioridad: Desafiante > Rendimiento máximo > Poder latente."
  ],
  [
-  "건강제일",
+  "완전 충전",
   "Unscathed",
   "無傷",
   "无伤",
@@ -5082,7 +5082,7 @@
   "Ileso"
  ],
  [
-  "풀차지",
+  "완전 충전",
   "Peak Performance",
   "フルチャージ",
   "最佳状态",
@@ -5148,7 +5148,7 @@
   "Dracoenergía"
  ],
  [
-  "용기활성",
+  "용기 활성",
   "Dragonheart",
   "龍気活性",
   "龙气激活",
@@ -5324,7 +5324,7 @@
   "Crisis"
  ],
  [
-  "사중구활",
+  "돌파구",
   "Resuscitate",
   "死中に活",
   "死中求生",
@@ -5335,7 +5335,7 @@
   "Resucitar"
  ],
  [
-  "독·폭파·속성 피해·거품 상태 등 상태 이상에 걸린 동안 공격력이 20 증가한다. 용기활성으로 발생하는 특수 용속성 피해 상태에도 적용된다.",
+  "독·폭파·속성 피해·거품 상태 등 상태 이상에 걸린 동안 공격력이 20 증가한다. 용기 활성으로 발생하는 특수 용속성 피해 상태에도 적용된다.",
   "While afflicted by statuses such as Poison, Blastblight, elemental blights, or bubbles, Attack +20. Also triggers from Dragonheart's special Dragonblight.",
   "毒・爆破やられ・属性やられ・泡状態などの間、攻撃力+20。龍気活性による特殊な龍属性やられでも発動する。",
   "处于中毒、爆破、属性异常或泡沫等状态时攻击力+20。龙气活性附带的特殊龙属性异常也能触发。",
@@ -5940,7 +5940,7 @@
   "Curación"
  ],
  [
-  "체력 회복량DOWN",
+  "체력 회복량 DOWN",
   "Recovery Down",
   "体力回復量DOWN",
   "体力回复量DOWN",
@@ -5962,7 +5962,7 @@
   "Reduce un 25% la salud recuperada mediante objetos curativos, munición curativa y algunas Artes de caza. Los intervalos de ciertas curaciones continuas se alargan."
  ],
  [
-  "체력 회복량UP",
+  "체력 회복량 UP",
   "Recovery Up",
   "体力回復量UP",
   "体力回复量UP",
@@ -6105,7 +6105,7 @@
   "Efecto objeto -1"
  ],
  [
-  "강주약·괴력의 씨앗·인약 등 일부 아이템과 강인 연마의 효과 지속시간이 약 33% 단축된다.",
+  "강주약·괴력씨앗·인약 등 일부 아이템과 강인 연마의 효과 지속시간이 약 33% 단축된다.",
   "Shortens the duration of certain items, such as Dash Juice, Might Seed and Sword & Shield oils, as well as Protective Polish, by about 33%.",
   "強走薬・怪力の種・刃薬などの一部アイテムと剛刃研磨の効果時間が約33%短縮される。",
   "强走药、怪力种子、刃药等部分道具及刚刃研磨的效果时间缩短约33%。",
@@ -6127,7 +6127,7 @@
   "Efecto objeto +1"
  ],
  [
-  "강주약·괴력의 씨앗·인약 등 일부 아이템과 강인 연마의 효과 지속시간이 50% 연장된다.",
+  "강주약·괴력씨앗·인약 등 일부 아이템과 강인 연마의 효과 지속시간이 50% 연장된다.",
   "Extends the duration of certain items, such as Dash Juice, Might Seed and Sword & Shield oils, as well as Protective Polish, by 50%.",
   "強走薬・怪力の種・刃薬などの一部アイテムと剛刃研磨の効果時間が50%延長される。",
   "强走药、怪力种子、刃药等部分道具及刚刃研磨的效果时间延长50%。",
@@ -6138,7 +6138,7 @@
   "La duración de algunos objetos (zumo energético, semilla de poder, aceites, etc.) y del Pulido protector se amplía un 50%."
  ],
  [
-  "광역",
+  "광역화",
   "Wide-Range",
   "広域",
   "广域",
@@ -6160,7 +6160,7 @@
   "Efecto área +1"
  ],
  [
-  "약초·회복약·해독약·괴력의 씨앗·인내의 씨앗·지움열매 사용 시 같은 지역의 동료 헌터와 아이루에게도 효과가 적용된다. 단, 회복량과 능력치 상승량·지속시간은 50%로 감소한다.",
+  "약초·회복약·해독약·괴력씨앗·인내씨앗·지움열매 사용 시 같은 지역의 동료 헌터와 아이루에게도 효과가 적용된다. 단, 회복량과 능력치 상승량·지속시간은 50%로 감소한다.",
   "Using Herbs, Potions, Antidotes, Might Seeds, Adamant Seeds or Nulberries also affects hunters and Palicoes in the same area, but healing, stat increases and durations are reduced to 50% for allies.",
   "薬草・回復薬・解毒薬・怪力の種・忍耐の種・ウチケシの実を使うと、同エリアの仲間ハンター・オトモにも効果が及ぶ。ただし回復量・能力上昇量・持続時間は50%になる。",
   "使用药草、回复药、解毒药、怪力种子、忍耐种子或打消果实时，同区域猎人和随从猫也获得效果，但恢复量、能力提升量与持续时间仅为50%。",
@@ -6182,7 +6182,7 @@
   "Efecto área +2"
  ],
  [
-  "약초·회복약·해독약·괴력의 씨앗·인내의 씨앗·지움열매 사용 시 같은 지역의 동료 헌터와 아이루에게도 동일한 효과가 적용된다.",
+  "약초·회복약·해독약·괴력씨앗·인내씨앗·지움열매 사용 시 같은 지역의 동료 헌터와 아이루에게도 동일한 효과가 적용된다.",
   "Using Herbs, Potions, Antidotes, Might Seeds, Adamant Seeds or Nulberries grants the same effects to hunters and Palicoes in the same area.",
   "薬草・回復薬・解毒薬・怪力の種・忍耐の種・ウチケシの実を使うと、同エリアの仲間ハンター・オトモにも同じ効果が及ぶ。",
   "使用药草、回复药、解毒药、怪力种子、忍耐种子或打消果实时，同区域猎人和随从猫获得相同效果。",
@@ -6314,7 +6314,7 @@
   "Glotón"
  ],
  [
-  "고기류·휴대식량 등을 먹으면 스태미나 최대치가 추가로 25 증가한다.",
+  "고기류·휴대 식량 등을 먹으면 스태미나 최대치가 추가로 25 증가한다.",
   "Eating meat, Rations, etc. restores 25 extra maximum Stamina.",
   "肉類・携帯食料などを食べるとスタミナ最大値の回復量が25増える。",
   "食用肉类、携带食料等时额外恢复25点耐力上限。",
@@ -6336,7 +6336,7 @@
   "Carroñero"
  ],
  [
-  "고기류·휴대식량 등을 먹으면 스태미나 최대치가 추가로 25 증가한다. 회복약·음료 등 다른 섭취 아이템 사용 시 약 33% 확률로 최대 스태미나가 25 증가한다.",
+  "고기류·휴대 식량 등을 먹으면 스태미나 최대치가 추가로 25 증가한다. 회복약·음료 등 다른 섭취 아이템 사용 시 약 33% 확률로 최대 스태미나가 25 증가한다.",
   "Eating meat or Rations restores 25 extra maximum Stamina. Using other edible items, such as Potions and drinks, has about a 33% chance to raise maximum Stamina by 25.",
   "肉類・携帯食料などを食べるとスタミナ最大値の回復量が25増加。回復薬・ドリンクなど他の飲食アイテムでは約33%の確率で最大スタミナが25増える。",
   "食用肉类或携带食料时耐力上限额外恢复25。使用回复药、饮料等其他可食用道具时，约33%概率使耐力上限提高25。",
@@ -6380,7 +6380,7 @@
   "Reduce la velocidad de consumo de carne."
  ],
  [
-  "흡입+1",
+  "빨리 먹기+1",
   "Speed Eating +1",
   "早食い+1",
   "快吃+1",
@@ -6402,7 +6402,7 @@
   "Aumenta la velocidad de consumo de carne."
  ],
  [
-  "흡입+2",
+  "빨리 먹기+2",
   "Speed Eating +2",
   "早食い+2",
   "快吃+2",
@@ -6479,7 +6479,7 @@
   "Carnívoro"
  ],
  [
-  "생고기를 먹을 수 있게 된다. 덜익은 고기와 잘익은 고기 등으로 잠시 강주 효과가 붙는다.",
+  "날고기를 먹을 수 있게 된다. 설익은 고기와 잘 익은 고기 등으로 잠시 강주 효과가 붙는다.",
   "Raw Meat becomes edible. Rare and Well-done Steaks temporarily grant unlimited Stamina.",
   "生肉が食べられるようになる。生焼け肉やこんがり肉などで少しの間、強走効果が付く。",
   "可以吃下生肉，食用半生肉和烤熟的肉后一小段时间内获得狂奔效果。",
@@ -6490,7 +6490,7 @@
   "Puedes comer carne cruda. Los bistecs poco hechos y al punto te dan resistencia ilimitada temporal."
  ],
  [
-  "버섯식사",
+  "버섯 애호가",
   "Mycology",
   "茸食",
   "食菇",
@@ -6501,7 +6501,7 @@
   "Micología"
  ],
  [
-  "버섯마니아",
+  "버섯 애호가",
   "Mushromancer",
   "キノコ大好き",
   "最爱蘑菇",
@@ -6545,7 +6545,7 @@
   "Herbología"
  ],
  [
-  "약초 사용 시 체력을 20 회복한다. 체력 회복량UP·광역화 스킬과 중첩 적용된다.",
+  "약초 사용 시 체력을 20 회복한다. 체력 회복량 UP·광역화 스킬과 중첩 적용된다.",
   "Using an Herb restores 20 Health. Stacks with Recovery Up and Wide-Range.",
   "薬草を使用すると体力が20回復する。体力回復量UP・広域化と併用可能。",
   "使用药草时恢复20点体力。可与回复量UP和广域化叠加。",
@@ -6567,7 +6567,7 @@
   "Herb. avanzada"
  ],
  [
-  "약초 사용 시 체력을 50 회복한다. 체력 회복량UP·광역화 스킬과 중첩 적용된다.",
+  "약초 사용 시 체력을 50 회복한다. 체력 회복량 UP·광역화 스킬과 중첩 적용된다.",
   "Using an Herb restores 50 Health. Stacks with Recovery Up and Wide-Range.",
   "薬草を使用すると体力が50回復する。体力回復量UP・広域化と併用可能。",
   "使用药草时恢复50点体力。可与回复量UP和广域化叠加。",
@@ -7260,7 +7260,7 @@
   "Alma de Bherna"
  ],
  [
-  "「화내성【소】」와 「배고픔 반감」의 복합 효과를 가진다.",
+  "「불 내성【소】」와 「배고픔 반감」의 복합 효과를 가진다.",
   "Combines the effects of \"Fire Res +15\" and \"Halve Hunger.\"",
   "「火耐性【小】」と「腹減り半減」を合わせた効果を持つ。",
   "同时拥有“火耐性【小】”和“饥饿减半”效果。",
@@ -7293,7 +7293,7 @@
   "Alma de Kokoto"
  ],
  [
-  "「뇌내성【소】」와 「정령의 변덕」의 복합 효과를 가진다.",
+  "「번개 내성【소】」와 「정령의 변덕」의 복합 효과를 가진다.",
   "Combines the effects of \"Spirit's Whim\" and \"Thunder Res +15.\"",
   "「雷耐性【小】」と「精霊の気まぐれ」を合わせた効果を持つ。",
   "同时拥有“雷耐性【小】”和“精灵的反复无常”效果。",
@@ -7326,7 +7326,7 @@
   "Alma de Pokke"
  ],
  [
-  "「빙내성【소】」와 「만복」의 복합 효과를 가진다.",
+  "「얼음 내성【소】」와 「만복」의 복합 효과를 가진다.",
   "Combines the effects of \"Ice Res +15\" and \"Gourmand.\"",
   "「氷耐性【小】」と「まんぷく」を合わせた効果を持つ。",
   "同时拥有“冰耐性【小】”和“吃饱喝足”效果。",
@@ -7359,7 +7359,7 @@
   "Alma de Yukumo"
  ],
  [
-  "「수내성【소】」와 「허니 헌터」의 복합 효과를 가진다.",
+  "「물 내성【소】」와 「허니 헌터」의 복합 효과를 가진다.",
   "Combines the effects of \"Honey Hunter\" and \"Water Res +15.\"",
   "「水耐性【小】」と「ハニーハンター」を合わせた効果を持つ。",
   "同时拥有“水耐性【小】”和“蜂蜜猎人”效果。",
@@ -7392,7 +7392,7 @@
   "Alma de Flotatorio"
  ],
  [
-  "「용내성【소】」와 「세균 연구가」의 복합 효과를 가진다.",
+  "「용 내성【소】」와 「세균 연구가」의 복합 효과를 가진다.",
   "Combines the effects of \"Bio Researcher\" and \"Dragon Res +15\".",
   "「龍耐性【小】」と「細菌研究家」を合わせた効果を持つ。",
   "同时拥有“龙耐性【小】”和“细菌研究员”效果。",
@@ -7491,7 +7491,7 @@
   "Alma de Alud"
  ],
  [
-  "「회피 거리UP」과 「스태미나급속회복」의 복합 효과를 가진다.",
+  "「회피 거리 UP」과 「스태미나 급속 회복」의 복합 효과를 가진다.",
   "Combines the effects of \"Evade Extender\" and \"Stam Recov Up.\"",
   "「回避距離UP」と「スタミナ急速回復」を合わせた効果を持つ。",
   "同时拥有“闪避距离UP”和“耐力急速回复”效果。",
@@ -7524,7 +7524,7 @@
   "Alma de Pétreo"
  ],
  [
-  "「업물」과 「반동 경감+2」 「정령의 가호」의 복합 효과를 가진다.",
+  "「명검」과 「반동 경감+2」 「정령의 가호」의 복합 효과를 가진다.",
   "Combines the effects of \"Razor Sharp,\" \"Recoil Down +2,\" and \"Divine Blessing.\"",
   "「業物」と「反動軽減+2」「精霊の加護」を合わせた効果を持つ。",
   "同时拥有“利刃”、“后坐力减轻+2”和“精灵加护”效果。",
@@ -7788,7 +7788,7 @@
   "Alma de Guadaña"
  ],
  [
-  "「흡입+2」와 「고급 귀마개」의 복합 효과를 가진다.",
+  "「빨리 먹기+2」와 「고급 귀마개」의 복합 효과를 가진다.",
   "Combines the effects of \"HG Earplugs\" and \"Speed Eating +2.\"",
   "「早食い+2」と「高級耳栓」を合わせた効果を持つ。",
   "同时拥有“快吃+2”和“高级耳塞”效果。",
@@ -7821,7 +7821,7 @@
   "Alma de Inferno"
  ],
  [
-  "「예리도 레벨+2」와 「탄도 강화」, 「숫돌 사용 고속화」의 복합 효과를 가진다.",
+  "「장인+2」와 「탄도 강화」, 「숫돌 사용 고속화」의 복합 효과를 가진다.",
   "Combines the effects of \"Sharpness +2,\" \"Shot Booster,\" and \"Speed Sharpening.\"",
   "「斬れ味レベル+2」と「弾導強化」、「砥石使用高速化」を合わせた効果を持つ。",
   "同时拥有“锋利度等级+2”、“弹道强化”和“急速磨刀”效果。",
@@ -7953,7 +7953,7 @@
   "Alma de Fulmen"
  ],
  [
-  "「초회심」과 「연발수+1」, 「예리도 레벨+1」의 복합 효과를 가진다.",
+  "「슈퍼회심」과 「연발수+1」, 「장인+1」의 복합 효과를 가진다.",
   "Combines the effects of \"Critical Boost,\" \"Bonus Shot,\" and \"Sharpness +1.\"",
   "「超会心」と「連発数+1」「斬れ味レベル+1」を合わせた効果を持つ。",
   "同时拥有“超会心”、“连发数+1”和“锋利度等级+1”效果。",
@@ -7986,7 +7986,7 @@
   "Alma de Glacial"
  ],
  [
-  "「런너」와 「둔기 사용」, 「통상탄・연사활UP」의 복합 효과를 가진다.",
+  "「런너」와 「둔기 사용」, 「통상탄/연사화살 강화」의 복합 효과를 가진다.",
   "Combines the effects of \"Marathon Runner,\" \"Bludgeoner,\" and \"Normal/Rapid Up.\"",
   "「ランナー」と「鈍器使い」「通常弾・連射矢UP」を合わせた効果を持つ。",
   "同时拥有“长跑健将”、“钝器手”和“通常弹･连射箭UP”效果。",
@@ -8030,7 +8030,7 @@
   "Combina los efectos de \"ataque+ (G)\" y \"evasión +2\"."
  ],
  [
-  "진・홍두",
+  "진 홍두",
   "Redhelm X",
   "真・紅兜",
   "真･红盔",
@@ -8041,7 +8041,7 @@
   "Ámbar X"
  ],
  [
-  "진・홍두의 혼",
+  "진 홍두의 혼",
   "Redhelm Soul X",
   "真・紅兜の魂",
   "真･红盔之魂",
@@ -8063,7 +8063,7 @@
   "Combina los efectos de \"resentimiento\", \"foco\" y \"corredor +1\"."
  ],
  [
-  "진・대설주",
+  "진 대설주",
   "Snowbaron X",
   "真・大雪主",
   "真･大雪主",
@@ -8074,7 +8074,7 @@
   "Alud X"
  ],
  [
-  "진・대설주의 혼",
+  "진 대설주의 혼",
   "Snowbaron Soul X",
   "真・大雪主の魂",
   "真･大雪主之魂",
@@ -8085,7 +8085,7 @@
   "Alma de Alud X"
  ],
  [
-  "「회피 거리UP」과 「탑승 명인」, 「스태미나급속회복」의 복합 효과를 가진다.",
+  "「회피 거리 UP」과 「탑승 명인」, 「스태미나 급속 회복」의 복합 효과를 가진다.",
   "Combines the effects of \"Evade Extender,\" \"Mounting Master,\" and \"Stam Recov Up.\"",
   "「回避距離UP」と「乗り名人」「スタミナ急速回復」を合わせた効果を持つ。",
   "同时拥有“闪避距离UP”、“骑乘名人”和“耐力急速回复”效果。",
@@ -8096,7 +8096,7 @@
   "Combina los efectos de \"distancia evasión\", \"maestro de monta\" y \"estado forma +1\"."
  ],
  [
-  "진・모쇄",
+  "진 모쇄",
   "Stonefist X",
   "真・矛砕",
   "真･矛碎",
@@ -8107,7 +8107,7 @@
   "Pétreo X"
  ],
  [
-  "진・모쇄의 혼",
+  "진 모쇄의 혼",
   "Stonefist Soul X",
   "真・矛砕の魂",
   "真･矛碎之魂",
@@ -8118,7 +8118,7 @@
   "Alma de Pétreo X"
  ],
  [
-  "「업물」과 「반동 경감+2」, 「정령의 가호」와 「체술+1」의 복합 효과를 가진다.",
+  "「명검」과 「반동 경감+2」, 「정령의 가호」와 「체술+1」의 복합 효과를 가진다.",
   "Combines the effects of \"Razor Sharp,\" \"Recoil Down +2,\" \"Divine Blessing,\" and \"Constitution +1.\"",
   "「業物」と「反動軽減+2」「精霊の加護」と「体術+1」を合わせた効果を持つ。",
   "同时拥有“利刃”、“后坐力减轻+2”、“精灵加护”和“体术+1”效果。",
@@ -8129,7 +8129,7 @@
   "Combina los efectos de \"filo de cuchilla\", \"cadencia +2\", \"bendición divina\" y \"constitución +1\"."
  ],
  [
-  "진・암천",
+  "진 암천",
   "Drilltusk X",
   "真・岩穿",
   "真･岩穿",
@@ -8140,7 +8140,7 @@
   "Toro X"
  ],
  [
-  "진・암천의 혼",
+  "진 암천의 혼",
   "Drilltusk Soul X",
   "真・岩穿の魂",
   "真･岩穿之魂",
@@ -8162,7 +8162,7 @@
   "Combina los efectos de \"adrenalina +2\", \"carroñero\" y \"artillería +2\"."
  ],
  [
-  "진・자독희",
+  "진 자독희",
   "Dreadqueen X",
   "真・紫毒姫",
   "真･紫毒姬",
@@ -8173,7 +8173,7 @@
   "Maldita X"
  ],
  [
-  "진・자독희의 혼",
+  "진 자독희의 혼",
   "D.queen Soul X",
   "真・紫毒姫の魂",
   "真･紫毒姬之魂",
@@ -8195,7 +8195,7 @@
   "Combina los efectos de \"estado anormal +2\", \"efecto área +2\" y \"herbología avanzada\"."
  ],
  [
-  "진・보전",
+  "진 보전",
   "Crystalbeard X",
   "真・宝纏",
   "真･宝缠",
@@ -8206,7 +8206,7 @@
   "Vítreo X"
  ],
  [
-  "진・보전의 혼",
+  "진 보전의 혼",
   "C.beard Soul X",
   "真・宝纏の魂",
   "真･宝缠之魂",
@@ -8228,7 +8228,7 @@
   "Combina los efectos de \"buscamuletos\", \"talismán de héroe\" y \"anula hambre\"."
  ],
  [
-  "진・백질풍",
+  "진 백질풍",
   "Silverwind X",
   "真・白疾風",
   "真･白疾风",
@@ -8239,7 +8239,7 @@
   "Argénteo X"
  ],
  [
-  "진・백질풍의 혼",
+  "진 백질풍의 혼",
   "Silverwind Soul X",
   "真・白疾風の魂",
   "真･白疾风之魂",
@@ -8261,7 +8261,7 @@
   "Combina los efectos de \"evasión +2\", \"ojo crítico +3\" y \"sigilo\"."
  ],
  [
-  "진・척안",
+  "진 척안",
   "Deadeye X",
   "真・隻眼",
   "真･独眼",
@@ -8272,7 +8272,7 @@
   "Cíclope X"
  ],
  [
-  "진・척안의 혼",
+  "진 척안의 혼",
   "Deadeye Soul X",
   "真・隻眼の魂",
   "真･独眼之魂",
@@ -8294,7 +8294,7 @@
   "Combina los efectos de \"anula aturdimiento\", \"espíritu +2\" y \"fortalecer\"."
  ],
  [
-  "진・흑염왕",
+  "진 흑염왕",
   "Dreadking X",
   "真・黒炎王",
   "真･黑炎王",
@@ -8305,7 +8305,7 @@
   "Maldito X"
  ],
  [
-  "진・흑염왕의 혼",
+  "진 흑염왕의 혼",
   "Dreadking Soul X",
   "真・黒炎王の魂",
   "真･黑炎王之魂",
@@ -8327,7 +8327,7 @@
   "Combina los efectos de \"resistencia al viento +2\", \"ataque+ (G)\" y \"adrenalina +1\"."
  ],
  [
-  "진・금뇌공",
+  "진 금뇌공",
   "Thunderlord X",
   "真・金雷公",
   "真･金雷公",
@@ -8338,7 +8338,7 @@
   "Tormenta X"
  ],
  [
-  "진・금뇌공의 혼",
+  "진 금뇌공의 혼",
   "Thunderlord Soul X",
   "真・金雷公の魂",
   "真･金雷公之魂",
@@ -8360,7 +8360,7 @@
   "Combina los efectos de \"poder oculto +2\", \"constitución +2\" y \"foco\"."
  ],
  [
-  "진・황구조",
+  "진 황구조",
   "Grimclaw X",
   "真・荒鉤爪",
   "真･荒钩爪",
@@ -8371,7 +8371,7 @@
   "Guadaña X"
  ],
  [
-  "진・황구조의 혼",
+  "진 황구조의 혼",
   "Grimclaw Soul X",
   "真・荒鉤爪の魂",
   "真･荒钩爪之魂",
@@ -8382,7 +8382,7 @@
   "Alma Guadaña X"
  ],
  [
-  "「흡입+2」와 「고급 귀마개」, 「SP시간연장」의 복합 효과를 가진다.",
+  "「빨리 먹기+2」와 「고급 귀마개」, 「SP시간연장」의 복합 효과를 가진다.",
   "Combines the effects of \"Speed Eating +2,\" \"HG Earplugs,\" and \"Longer SP.\"",
   "「早食い+2」と「高級耳栓」「ＳＰ時間延長」を合わせた効果を持つ。",
   "同时拥有“快吃+2”、“高级耳塞”和“SP时间延长”效果。",
@@ -8393,7 +8393,7 @@
   "Combina los efectos de \"consumir +2\", \"tapones +2\" y \"prolongación de SP\"."
  ],
  [
-  "진・신멸인",
+  "진 신멸인",
   "Hellblade X",
   "真・燼滅刃",
   "真･烬灭刃",
@@ -8404,7 +8404,7 @@
   "Inferno X"
  ],
  [
-  "진・신멸인의 혼",
+  "진 신멸인의 혼",
   "Hellblade Soul X",
   "真・燼滅刃の魂",
   "真･烬灭刃之魂",
@@ -8415,7 +8415,7 @@
   "Alma de Inferno X"
  ],
  [
-  "「예리도 레벨+2」와 「보머」, 「탄도강화」와 「숫돌 사용 고속화」의 복합 효과를 가진다.",
+  "「장인+2」와 「보머」, 「탄도 강화」와 「숫돌 사용 고속화」의 복합 효과를 가진다.",
   "Combines the effects of \"Sharpness +2,\" \"Bombardier,\" \"Shot Booster,\" and \"Speed Sharpening.\"",
   "「斬れ味レベル+2」と「ボマー」「弾導強化」と「砥石使用高速化」を合わせた効果を持つ。",
   "同时拥有“锋利度等级+2”、“爆破手”、“弹道强化”和“急速磨刀”效果。",
@@ -8426,7 +8426,7 @@
   "Combina los efectos de \"afilado +2\", \"bombardero\", \"potenciador de disparo\" y \"afilado rápido\"."
  ],
  [
-  "진・농은",
+  "진 농은",
   "Nightcloak X",
   "真・朧隠",
   "真･胧隐",
@@ -8437,7 +8437,7 @@
   "Nébula X"
  ],
  [
-  "진・농은의 혼",
+  "진 농은의 혼",
   "Nightcloak Soul X",
   "真・朧隠の魂",
   "真･胧隐之魂",
@@ -8459,7 +8459,7 @@
   "Combina los efectos de \"tapones +2\", \"velocidad de recarga +3\", \"mano firme\" y \"trampero\"."
  ],
  [
-  "진・개열",
+  "진 개열",
   "Rustrazor X",
   "真・鎧裂",
   "真･铠裂",
@@ -8470,7 +8470,7 @@
   "Férreo X"
  ],
  [
-  "진・개열의 혼",
+  "진 개열의 혼",
   "Rustrazor Soul X",
   "真・鎧裂の魂",
   "真･铠裂之魂",
@@ -8481,7 +8481,7 @@
   "Alma de Férreo X"
  ],
  [
-  "「가드 성능+2」와 「납도술」, 「칼비늘 연마」의 복합 효과를 가진다.",
+  "「가드 성능+2」와 「납도술」, 「칼날비늘 연마」의 복합 효과를 가진다.",
   "Combines the effects of \"Guard +2,\" \"Quick Sheath,\" and \"Bladescale Hone.\"",
   "「ガード性能+2」と「納刀術」「刃鱗磨き」を合わせた効果を持つ。",
   "同时拥有“格挡性能+2”、“收刀术”和“刃鳞打磨”效果。",
@@ -8492,7 +8492,7 @@
   "Combina los efectos de \"guardia +2\", \"vaina rápida\" y \"filoescama afilada\"."
  ],
  [
-  "진・천안",
+  "진 천안",
   "Soulseer X",
   "真・天眼",
   "真･天眼",
@@ -8503,7 +8503,7 @@
   "Tengen X"
  ],
  [
-  "진・천안의 혼",
+  "진 천안의 혼",
   "Soulseer Soul X",
   "真・天眼の魂",
   "真･天眼之魂",
@@ -8525,7 +8525,7 @@
   "Combina los efectos de \"ojo crítico +3\", y \"espíritu +2\"."
  ],
  [
-  "진・청전주",
+  "진 청전주",
   "Boltreaver X",
   "真・青電主",
   "真･青电主",
@@ -8536,7 +8536,7 @@
   "Fulmen X"
  ],
  [
-  "진・청전주의 혼",
+  "진 청전주의 혼",
   "Boltreaver Soul X",
   "真・青電主の魂",
   "真･青电主之魂",
@@ -8547,7 +8547,7 @@
   "Alma de Fulmen X"
  ],
  [
-  "「초회심」과 「연발수+1」, 「예리도 레벨+1」 그리고 「호시탐탐」의 효과를 가진다.",
+  "「슈퍼회심」과 「연발수+1」, 「장인+1」 그리고 「호시탐탐」의 효과를 가진다.",
   "Combines the effects of \"Critical Boost,\" \"Bonus Shot,\" \"Sharpness +1,\" and \"Chance Seizer.\"",
   "「超会心」と「連発数+1」「斬れ味レベル+1」そして「虎視眈々」の効果を持つ。",
   "同时拥有“超会心”、“连发数+1”、“锋利度等级+1”和“虎视眈眈”效果。",
@@ -8558,7 +8558,7 @@
   "Combina los efectos de \"potenciador crítico\", \"disparo bonus +1\", \"afilado +1\" y \"oportunista\"."
  ],
  [
-  "진・은령",
+  "진 은령",
   "Elderfrost X",
   "真・銀嶺",
   "真･银峰",
@@ -8569,7 +8569,7 @@
   "Glacial X"
  ],
  [
-  "진・은령의 혼",
+  "진 은령의 혼",
   "Elderfrost Soul X",
   "真・銀嶺の魂",
   "真･银峰之魂",
@@ -8580,7 +8580,7 @@
   "Alma de Glacial X"
  ],
  [
-  "「런너」와 「둔기 사용」,「통상탄 ・연사활UP」 그리고 「공격력UP 【중】」의 효과를 가진다.",
+  "「런너」와 「둔기 사용」,「통상탄/연사화살 강화」 그리고 「공격력UP 【중】」의 효과를 가진다.",
   "Combines the effects of \"Marathon Runner,\" \"Bludgeoner,\" \"Normal/Rapid Up,\" and \"Attack Up (M).\"",
   "「ランナー」と「鈍器使い」「通常弾・連射矢UP」そして「攻撃力UP【中】」の効果。",
   "同时拥有“长跑健将”、“钝器手”“通常弹･连射箭UP”和“攻击力UP【中】”效果。",
@@ -8591,7 +8591,7 @@
   "Combina los efectos de \"corredor +1\", \"cachiporra pesada\", \"Normal/salva+\" y \"ataque +2\"."
  ],
  [
-  "진・오마",
+  "진 오마",
   "Bloodbath X",
   "真・鏖魔",
   "真･鏖魔",
@@ -8602,7 +8602,7 @@
   "Sanguinario X"
  ],
  [
-  "진・오마의 혼",
+  "진 오마의 혼",
   "Bloodbath Soul X",
   "真・鏖魔の魂",
   "真･鏖魔之魂",
@@ -8679,7 +8679,7 @@
   "Mano firme"
  ],
  [
-  "「심안」과 「업물」의 복합 효과를 가진다.",
+  "「심안」과 「명검」의 복합 효과를 가진다.",
   "Combines the effects of \"Mind's Eye\" and \"Razor Sharp.\"",
   "「心眼」と「業物」を合わせた効果を持つ。",
   "同时拥有“心眼”和“利刃”效果。",
@@ -8712,7 +8712,7 @@
   "Gourmet"
  ],
  [
-  "「흡입+2」와 「고기마니아」, 「버섯마니아」의 복합 효과를 가진다.",
+  "「빨리 먹기+2」와 「고기마니아」, 「버섯 애호가」의 복합 효과를 가진다.",
   "Combines the effects of \"Speed Eating +2,\" \"Meat Lover,\" and \"Mushromancer.\"",
   "「早食い+2」と「お肉大好き」「キノコ大好き」を合わせた効果を持つ。",
   "同时拥有“快吃+2”、“嗜肉如命”和“最爱蘑菇”效果。",
@@ -8811,7 +8811,7 @@
   "Bendición"
  ],
  [
-  "「체력 회복량UP」과 「정령의 가호」의 복합 효과를 가진다.",
+  "「체력 회복량 UP」과 「정령의 가호」의 복합 효과를 가진다.",
   "Combines the effects of \"Recovery Up\" and \"Divine Blessing.\"",
   "「体力回復量UP」と「精霊の加護」を合わせた効果を持つ。",
   "同时拥有“体力回复量UP”和“精灵加护”效果。",
@@ -8877,7 +8877,7 @@
   "Punzante"
  ],
  [
-  "「예리도 레벨+1」과 「공격력UP【대】」의 복합 효과를 가진다.",
+  "「장인+1」과 「공격력UP【대】」의 복합 효과를 가진다.",
   "Combines the effects of \"Sharpness +1\" and \"Attack Up (L).\"",
   "「斬れ味レベル+1」と「攻撃力UP【大】」を合わせた効果を持つ。",
   "同时拥有“锋利度等级+1”和“攻击力UP【大】”效果。",
@@ -8910,7 +8910,7 @@
   "Pulso firme"
  ],
  [
-  "「통상탄・연사활UP」과 「관통탄・관통활UP」 그리고 「산탄・확산활UP」의 효과.",
+  "「통상탄/연사화살 강화」과 「관통탄/관통화살 강화」 그리고 「산탄/확산화살 강화」의 효과.",
   "Combines the effects of \"Normal/Rapid Up,\" \"Pierce/Pierce Up,\" and \"Pellet/Spread Up.\"",
   "「通常弾・連射矢UP」と「貫通弾・貫通矢UP」そして「散弾・拡散矢UP」の効果。",
   "同时拥有“通常弹･连射箭UP”“贯穿弹･贯穿箭UP”和“散弹･扩散箭UP”效果。",
@@ -9141,7 +9141,7 @@
   "Portaescudos"
  ],
  [
-  "「가드 강화」와 「스태미나급속회복」의 복합 효과를 가진다.",
+  "「가드 강화」와 「스태미나 급속 회복」의 복합 효과를 가진다.",
   "Combines the effects of \"Guard Up\" and \"Stam Recov Up.\"",
   "「ガード強化」と「スタミナ急速回復」を合わせた効果を持つ。",
   "同时拥有“格挡强化”和“耐力急速回复”效果。",
@@ -9174,7 +9174,7 @@
   "Pies veloces"
  ],
  [
-  "「풀차지」와 「회피 거리UP」의 복합 효과를 가진다.",
+  "「완전 충전」과 「회피 거리 UP」의 복합 효과를 가진다.",
   "Combines the effects of \"Peak Performance\" and \"Evade Extender.\"",
   "「フルチャージ」と「回避距離UP」を合わせた効果を持つ。",
   "同时拥有“最佳状态”和“闪避距离UP”效果。",
@@ -9196,7 +9196,7 @@
   "Amplificar"
  ],
  [
-  "속・물 강화",
+  "속 물 강화",
   "Elementality",
   "属物強化",
   "属性兼道具强化",
@@ -9372,7 +9372,7 @@
   "Talism. ferrenácar"
  ],
  [
-  "「남풍의 사냥꾼」과 「화내성【대】」 그리고 「세균 연구가」의 효과를 가진다.",
+  "「남풍의 사냥꾼」과 「불 내성【대】」 그리고 「세균 연구가」의 효과를 가진다.",
   "Combines the effects of \"Tropic Hunter,\" \"Fire Res +20,\" and \"Bio Researcher.\"",
   "「南風の狩人」「火耐性【大】」そして「細菌研究家」の効果を持つ。",
   "同时拥有“南风猎手”“火耐性【大】”和“细菌研究员”效果。",

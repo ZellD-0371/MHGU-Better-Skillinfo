@@ -1,10 +1,24 @@
+fn has(ro:&[u8],s:&[u8])->bool{ro.windows(s.len()).any(|w|w==s)}
+/// Log prefixes of our own plugins. They also carry KatSmithy's marker strings
+/// (to detect it), so a module holding any of them is never KatSmithy itself.
+const OUR_PREFIXES:[&[u8];4]=[b"[better-skillinfo]",b"[korean-",b"[wishlist]",b"[skill-sim"];
 pub fn identifies(ro:&[u8])->bool{
  [b"[KatSmithy]".as_slice(),b"katsmithy.ini".as_slice(),b"Skill points by piece".as_slice()]
- .iter().all(|s|ro.windows(s.len()).any(|w|w==*s))
+ .iter().all(|s|has(ro,s))&&!OUR_PREFIXES.iter().any(|p|has(ro,p))
 }
 #[cfg(test)]mod tests{
  use super::*;
+ extern crate std;
  #[test]fn module_identity_requires_all_markers(){assert!(identifies(b"[KatSmithy] katsmithy.ini Skill points by piece"));assert!(!identifies(b"[KatSmithy]"));assert!(!identifies(b"katsmithy.ini"));}
+ // Ryujinx log without KatSmithy: our other plugins hold the same markers and were
+ // mistaken for it. Any of our log prefixes rules a module out.
+ #[test]fn our_plugins_are_not_katsmithy(){
+  for p in ["[better-skillinfo]","[korean-patch]","[wishlist]","[skill-sim]"]{
+   let ro=std::format!("[KatSmithy] katsmithy.ini Skill points by piece {p} ready");
+   assert!(!identifies(ro.as_bytes()),"{p}");
+  }
+  assert!(identifies(b"\0[KatSmithy] loaded\0katsmithy.ini\0Skill points by piece\0"));
+ }
 }
 
 /// The smithy updater's first two words in MHGU 1.4.0; KatSmithy's guard expects them.

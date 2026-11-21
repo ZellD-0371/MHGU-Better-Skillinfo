@@ -164,7 +164,7 @@ enum Kind{
     Language,
     Defaults,
 }
-const fn size(field:fn(&mut Config)->&mut i32)->Kind{Kind::Number{first:5,step:1,count:16,suffix:None,field}}
+const fn size(field:fn(&mut Config)->&mut i32)->Kind{Kind::Number{first:5,step:1,count:21,suffix:None,field}}
 const fn width(field:fn(&mut Config)->&mut i32)->Kind{Kind::Number{first:180,step:5,count:65,suffix:None,field}}
 const fn height(field:fn(&mut Config)->&mut i32)->Kind{Kind::Number{first:200,step:5,count:97,suffix:None,field}}
 const fn top(field:fn(&mut Config)->&mut i32)->Kind{Kind::Number{first:0,step:1,count:201,suffix:None,field}}

@@ -39,7 +39,7 @@ use generated::*;
 #[derive(Clone,Copy,PartialEq)]
 struct Config { logging:bool,keyboard_previous:u32,keyboard_next:u32,previous_binding:u32,next_binding:u32,enabled:bool, armor_enabled:bool, deco_enabled:bool, change_enabled:bool, center_x:i32,center_y:i32,center_width:i32,center_height:i32,center_font_size:i32,center_opacity:f32, language:usize, show_all:bool, descriptions:bool, x:i32,y:i32,width:i32,max_height:i32,font_size:i32,opacity:f32, sim_auto:bool, sim_x:i32, sim_y:i32, sim_width:i32, sim_height:i32, sim_font_size:i32 }
 impl Config {
-    const DEFAULT:Self=Self{logging:false,keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:14,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:14,opacity:0.9,sim_auto:true,sim_x:8,sim_y:6,sim_width:220,sim_height:700,sim_font_size:12};
+    const DEFAULT:Self=Self{logging:false,keyboard_previous:bindings::KEY_PREV,keyboard_next:bindings::KEY_NEXT,previous_binding:bindings::DEFAULT_PREV,next_binding:bindings::DEFAULT_NEXT,enabled:true,armor_enabled:true,deco_enabled:true,change_enabled:true,center_x:0,center_y:53,center_width:375,center_height:525,center_font_size:17,center_opacity:0.9,language:1,show_all:false,descriptions:true,x:42,y:53,width:375,max_height:525,font_size:17,opacity:0.9,sim_auto:true,sim_x:8,sim_y:6,sim_width:220,sim_height:700,sim_font_size:12};
     fn parse(text:&str)->Result<Self,()> {
         let mut c=Self::DEFAULT;
         let version3=text.lines().any(|line|line.split_once('=').is_some_and(|(k,v)|k.trim()=="version"&&v.trim()=="3"));
@@ -70,9 +70,9 @@ impl Config {
         c.keyboard_previous=bindings::validate_key(c.keyboard_previous);c.keyboard_next=bindings::validate_key(c.keyboard_next);
         c.previous_binding&=bindings::MASK;c.next_binding&=bindings::MASK;
         c.language=c.language.min(8);c.x=c.x.clamp(0,85);c.y=c.y.clamp(0,200);
-        c.max_height=c.max_height.clamp(200,680);c.width=c.width.clamp(180,500);c.font_size=c.font_size.clamp(5,20);
-        c.sim_x=c.sim_x.clamp(0,400);c.sim_y=c.sim_y.clamp(0,200);c.sim_width=c.sim_width.clamp(120,500);c.sim_height=c.sim_height.clamp(200,708);c.sim_font_size=c.sim_font_size.clamp(5,20);
-        c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(180,500);c.center_height=c.center_height.clamp(200,680);c.center_font_size=c.center_font_size.clamp(5,20);
+        c.max_height=c.max_height.clamp(200,680);c.width=c.width.clamp(180,500);c.font_size=c.font_size.clamp(5,25);
+        c.sim_x=c.sim_x.clamp(0,400);c.sim_y=c.sim_y.clamp(0,200);c.sim_width=c.sim_width.clamp(120,500);c.sim_height=c.sim_height.clamp(200,708);c.sim_font_size=c.sim_font_size.clamp(5,25);
+        c.center_x=c.center_x.clamp(-200,200);c.center_y=c.center_y.clamp(0,200);c.center_width=c.center_width.clamp(180,500);c.center_height=c.center_height.clamp(200,680);c.center_font_size=c.center_font_size.clamp(5,25);
         if !c.center_opacity.is_finite(){return Err(())}
         c.center_opacity=((c.center_opacity.clamp(0.1,1.)*10.+0.5) as i32) as f32/10.;
         if !c.opacity.is_finite(){return Err(())}
@@ -378,7 +378,7 @@ pub extern "C" fn forge_onImGuiRender(){
         imgui::slider_int(c"Y",&mut c.y,0,200,ImGuiSliderFlags::AlwaysClamp);
         imgui::slider_int(ui.width,&mut c.width,180,500,ImGuiSliderFlags::AlwaysClamp);
         imgui::slider_int(ui.height,&mut c.max_height,200,680,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.size,&mut c.font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.size,&mut c.font_size,5,25,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igSliderFloat(ui.opacity.as_ptr(),&mut c.opacity,0.1,1.,c"%.1f".as_ptr(),ImGuiSliderFlags::AlwaysClamp);}
         c.opacity=((c.opacity*10.+0.5) as i32).clamp(1,10) as f32/10.;
         let extra=&locales::EXTRA[c.language];
@@ -389,7 +389,7 @@ pub extern "C" fn forge_onImGuiRender(){
         unsafe{forge::sys::imgui::igPushID_Str(c"center-layout".as_ptr());}
         imgui::slider_int(ui.width,&mut c.center_width,180,500,ImGuiSliderFlags::AlwaysClamp);
         imgui::slider_int(ui.height,&mut c.center_height,200,680,ImGuiSliderFlags::AlwaysClamp);
-        imgui::slider_int(ui.size,&mut c.center_font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.size,&mut c.center_font_size,5,25,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igSliderFloat(ui.opacity.as_ptr(),&mut c.center_opacity,0.1,1.,c"%.1f".as_ptr(),ImGuiSliderFlags::AlwaysClamp);forge::sys::imgui::igPopID();}
         c.center_opacity=((c.center_opacity*10.+0.5) as i32).clamp(1,10) as f32/10.;
         // Used only while Skill-Simulator's window is open.
@@ -403,7 +403,7 @@ pub extern "C" fn forge_onImGuiRender(){
             imgui::slider_int(ui.width,&mut c.sim_width,120,500,ImGuiSliderFlags::AlwaysClamp);
             imgui::slider_int(ui.height,&mut c.sim_height,200,708,ImGuiSliderFlags::AlwaysClamp);
         }
-        imgui::slider_int(ui.size,&mut c.sim_font_size,5,20,ImGuiSliderFlags::AlwaysClamp);
+        imgui::slider_int(ui.size,&mut c.sim_font_size,5,25,ImGuiSliderFlags::AlwaysClamp);
         unsafe{forge::sys::imgui::igPopID();}
         imgui::checkbox(ui.preview,&mut preview);
         if preview{
