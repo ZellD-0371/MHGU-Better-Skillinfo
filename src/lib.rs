@@ -5,6 +5,7 @@ mod bindings;
 mod pagination;
 mod controller;
 mod menu_input;
+mod hook_guard;
 mod katsmithy;
 mod katsmithy_model;
 mod wishlist_model;
@@ -140,6 +141,7 @@ unsafe fn capture(owner:u32,group:u32,widget:u32,text:u32){
     });
 }
 
+static SET_TEXT_CHAIN:AtomicBool=AtomicBool::new(false);
 #[forge::hook(offset=0x56e808)]
 fn set_text(owner:u32,group:u32,widget:u32,text:u32)->u32{
     unsafe{capture(owner,group,widget,text)}
@@ -147,6 +149,7 @@ fn set_text(owner:u32,group:u32,widget:u32,text:u32)->u32{
     // Forge copies these two instructions verbatim into its trampoline. The B
     // is PC-relative and would jump elsewhere from the trampoline's RX address.
     // Reproduce the wrapper directly instead of executing that copied branch.
+    if SET_TEXT_CHAIN.load(Ordering::Acquire){return original!(owner,group,widget,text)}
     let base=STATE.with(|s|s.base);
     let render:unsafe extern "C" fn(u32,u32,u32,u32)->u32=unsafe{core::mem::transmute(base+0x547564)};
     unsafe{render(rd(owner+0x24),group,widget,text)}
@@ -175,13 +178,28 @@ fn socket_page(owner:u32)->u32{
 
 #[forge::entry]
 fn main(){
+    static INITIALIZED:AtomicBool=AtomicBool::new(false);
+    if INITIALIZED.swap(true,Ordering::AcqRel){return}
     let base=forge::mem::text_addr();
-    let compatible=unsafe{rd(base+0x56e808)==0xe5900024&&rd(base+0x56e80c)==0xeaff6354&&rd(base+0x547564)==0xe92d4070&&rd(base+0x56ea08)==0xe92d4070&&rd(base+0x56dc88)==0xe92d48f0&&rd(base+0x57f5ac)==0xe92d4070&&rd(base+0xdb7b8)==0xe0800081&&rd(base+0x6353fc)==0xe92d4ff0&&rd(base+0xdb0b0)==0xe92d4070&&rd(base+0xdb160)==0xe92d4070&&rd(base+0xdaf18)==0xe1d000b4};
+    let compatible=hook_guard::game_layout(base);
     let config=storage::SETTINGS.load(Config::DEFAULT,Config::parse);
     logging::set(config.logging);
     STATE.with(|s|{s.base=base;s.config=config;s.installed=compatible});
     if !compatible{error!("[better-skillinfo] MHGU 1.4.0 code signature mismatch; hooks disabled");return}
-    forge::install_hook!(base,set_text);forge::install_hook!(base,show_text);forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);forge::install_hook!(base,equipment_page);forge::install_hook!(base,socket_page);
+    hook_guard::initialize(base);
+    use hook_guard as g;
+    // Lifecycle invalidation is shared by cached native text/equipment owners.
+    let plan=g::plan();
+    if plan.lifecycle{
+        forge::install_hook!(base,close_ui);forge::install_hook!(base,destroy_ui);
+        if plan.text{
+            SET_TEXT_CHAIN.store(unsafe{rd(base+0x56e808)}==0xe51ff004,Ordering::Release);
+            forge::install_hook!(base,set_text);
+        }
+        if plan.show{forge::install_hook!(base,show_text);}
+        if plan.equipment{forge::install_hook!(base,equipment_page);}
+        if plan.sockets{forge::install_hook!(base,socket_page);}
+    }else{warn!("[better-skillinfo] native owner observers disabled: UI lifecycle guard unavailable; independent integrations retained");}
     let input_ready=controller::install(base);STATE.with(|s|s.input_ready=input_ready);
     // Emulators that bind pad imports lazily (Ryujinx) attach them later in onUpdate,
     // which logs each one; only a rejected entry hook is an error.
@@ -192,7 +210,7 @@ fn main(){
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn forge_onUpdate(_dt:f32){let base=STATE.with(|s|{s.frame=s.frame.wrapping_add(1);s.base});let ready=controller::refresh_pending(base);STATE.with(|s|s.input_ready=ready);katsmithy::update(base);sound::update(base);}
+pub extern "C" fn forge_onUpdate(_dt:f32){let (base,installed)=STATE.with(|s|{s.frame=s.frame.wrapping_add(1);(s.base,s.installed)});if !installed{return}let ready=controller::refresh_pending(base);STATE.with(|s|s.input_ready=ready);katsmithy::update(base);sound::update(base);}
 #[unsafe(no_mangle)]
 pub extern "C" fn forge_onImGuiInit(_ctx:*mut c_void,_alloc:*mut c_void,_free:*mut c_void){
     let f=imgui::ImFont::load(c"app:/nativeNX/plugins/better-skillinfo/BetterSkillinfo-Subset.otf");

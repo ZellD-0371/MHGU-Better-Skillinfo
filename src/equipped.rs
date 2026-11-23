@@ -73,6 +73,8 @@ pub fn after_removal(base:u32,slot:usize)->[i16;206]{
 /// The same armor and weapon type predicates used by MHGU's equipment preview.
 /// In particular, shared headgear is not rejected merely because of its name.
 pub fn preview_compatible(base:u32,equip:u32)->Option<bool>{
+    use crate::hook_guard as g;
+    if ![g::BLADE,g::GUNNER,g::WEAPON].iter().all(|&id|g::enabled(id)){return None}
     if !valid(equip){return None}
     let kind=unsafe{ptr::read_unaligned((equip+4) as *const u16)}&31;
     if !(1..=5).contains(&kind){return Some(true)}

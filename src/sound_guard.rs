@@ -1,7 +1,7 @@
 //! Accept the original entry or a standard Forge jump with an intact body.
 pub fn valid(words:[u32;4],site:u32)->bool{
     const ORIGINAL:[u32;4]=[0xe1a02000,0xe59200c0,0xe3500000,0x012fff1e];
-    words==ORIGINAL || (words[0]==0xe51ff004 && words[1]>=0x10000 && words[1]<0xffff0000 && words[1]&3==0 && words[1]!=site && words[2..]==ORIGINAL[2..])
+    crate::hook_guard::classify(&words,&ORIGINAL,site)!=crate::hook_guard::Entry::Incompatible
 }
 #[cfg(test)]
 mod tests{

@@ -50,7 +50,7 @@ pub fn valid_camera_entry(words:[u32;4],site:u32)->bool{
  valid_signature(words,site,[0xe92d4800,0xe59f0034,0xe3a02000,0xe79fe000])
 }
 fn valid_signature(words:[u32;4],site:u32,original:[u32;4])->bool{
- words==original||(words[0]==0xe51ff004&&(0x10000..0xeffff000).contains(&words[1])&&words[1]&3==0&&words[1]!=site&&words[2..]==original[2..])
+ crate::hook_guard::classify(&words,&original,site)!=crate::hook_guard::Entry::Incompatible
 }
 #[cfg(test)]mod tests{
  use super::*;

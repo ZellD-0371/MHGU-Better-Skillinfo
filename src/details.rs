@@ -11,6 +11,9 @@ pub fn capture(owner:u32,equip:u32,page_kind:u32){
     if !valid(owner){return}
     let (base,enabled)=STATE.with(|s|(s.base,s.config.enabled&&(s.config.armor_enabled||s.config.change_enabled||s.config.deco_enabled)));
     if !enabled{return}
+    if page_kind==8&&!crate::hook_guard::enabled(crate::hook_guard::DECO){
+        STATE.with(|s|{for a in &mut s.armors{if a.owner==owner{*a=Armor::EMPTY;}}});return
+    }
     let mut a=Armor{owner,..Armor::EMPTY};
     // The dispatch writes owner+F8. Its page list starts at +5C, terminated by kind 28.
     // An optional socket page (8) also appears in forging; it cannot identify the operation.

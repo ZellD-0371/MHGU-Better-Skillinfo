@@ -137,7 +137,7 @@ pub fn update(base:u32){
  let size=MODULE_SIZE.load(Ordering::Acquire);
  let chained=crate::katsmithy_model::needs_chain_proof(initial,entry,module,size)&&kat_chained(base,module,size);
  if !crate::katsmithy_model::kat_hook_ready(initial,entry,module,size,chained){
-  forge::log::prelude::error!("[better-skillinfo] KatSmithy smithy hook inactive (first {:08X} {:08X}, now {:08X} {:08X}); native skill UI retained",initial[0],initial[1],entry[0],entry[1]);return
+  forge::log::prelude::error!("[better-skillinfo] KatSmithy observer disabled at main+0x6F1AE8: expected original E92D41F0 E24DD018 or proven Forge chain; actual (first {:08X} {:08X}, now {:08X} {:08X}); native skill UI retained",initial[0],initial[1],entry[0],entry[1]);return
  }
  if !(entry[1]>=module&&entry[1]-module<MODULE_SIZE.load(Ordering::Acquire)){
   crate::log_info!("[better-skillinfo] KatSmithy smithy hook chained by another plugin ({:08X}); observer linked on top",entry[1]);

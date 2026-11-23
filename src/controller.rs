@@ -146,15 +146,9 @@ unsafe extern "C" fn handheld(s:u32,id:u32){unsafe{filter(4,s,id)}}
 
 pub fn install(base:u32)->bool{
     if INSTALLED.load(Ordering::Acquire){return refresh_pending(base)}
-    // KatSmithy, Wishlist and Skill-Simulator hook these entries too, in any order and
-    // in their own form. The game build is already verified in main, so an entry we
-    // do not recognise is logged and chained through Forge anyway; we never switch
-    // paging off over another plugin's hook.
-    let site=base+0x3de4f8;
-    let words:[u32;4]=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
-    if !crate::menu_input::valid_entry(words,site){
-        crate::log_info!("[better-skillinfo] input entry already patched ({:08X} {:08X} {:08X} {:08X}); chaining through Forge",words[0],words[1],words[2],words[3]);
-    }
+    // Unknown patches are not evidence of a valid hook. Accept only the verified
+    // body or Forge's standard chained entry, and install at most once.
+    if crate::hook_guard::check(base,"menu input",0x3de4f8,&[0xe3a02010,0xe3a00040,0xe0022821,0xe0000821])==crate::hook_guard::Entry::Incompatible{return false}
     let camera_site=base+0x3de4b0;
     let camera_words:[u32;4]=core::array::from_fn(|i|unsafe{read(camera_site+i as u32*4)});
     unsafe{
@@ -169,13 +163,14 @@ pub fn install(base:u32)->bool{
     );
     CAMERA_FORGE_ORIGINAL.store(forge_original as u32,Ordering::Release);
     forge::install_hook!(base,menu_translate);
-    // The camera hook replays the original prologue unless Forge calls the original
-    // (Recomp, or an entry already chained): only an unknown native prologue is skipped.
-    if crate::menu_input::valid_camera_entry(camera_words,camera_site)||forge_original{
-        forge::install_hook!(base,camera_translate);
-    }else{
-        forge::log::prelude::warn!("[better-skillinfo] camera entry unrecognised ({:08X} {:08X}); preview camera keeps its input",camera_words[0],camera_words[1]);
-    }
+    // Recomp's original-call route is not permission to run unknown code.
+    let camera=crate::hook_guard::check(base,"camera input",0x3de4b0,&[0xe92d4800,0xe59f0034,0xe3a02000,0xe79fe000]);
+    let replay_ok=if !forge_original{
+        let actual=unsafe{[read(base+0x3de4f0),read(base+0x3de4f4)]};
+        let expected=[0x0145e73c,0x0145e734];
+        if actual!=expected{forge::log::prelude::warn!("[better-skillinfo] camera replay disabled: main+0x3DE4F0 expected={:08X?}, actual={:08X?}",expected,actual);false}else{true}
+    }else{true};
+    if camera!=crate::hook_guard::Entry::Incompatible&&replay_ok{forge::install_hook!(base,camera_translate);}
     INSTALLED.store(true,Ordering::Release);
     refresh_pending(base)
 }
