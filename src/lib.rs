@@ -187,7 +187,7 @@ fn main(){
     // which logs each one; only a rejected entry hook is an error.
     if input_ready{crate::log_info!("[better-skillinfo] physical bindings + post-remapping menu filter installed");}
     else if controller::entry_hooked(){crate::log_info!("[better-skillinfo] menu filter installed; pad imports not bound yet, attaching when the game first uses them");}
-    else{error!("[better-skillinfo] controller paging disabled: input entry hook signature mismatch");}
+    else{error!("[better-skillinfo] controller paging disabled: input entry hooks not installed");}
     crate::log_info!("[better-skillinfo] MHGU Better_Skillinfo v{}: {} items / 9 languages, main=0x{:X}",env!("CARGO_PKG_VERSION"),DECOS.len(),base);
 }
 

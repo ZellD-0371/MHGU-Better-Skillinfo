@@ -146,12 +146,17 @@ unsafe extern "C" fn handheld(s:u32,id:u32){unsafe{filter(4,s,id)}}
 
 pub fn install(base:u32)->bool{
     if INSTALLED.load(Ordering::Acquire){return refresh_pending(base)}
+    // KatSmithy, Wishlist and Skill-Simulator hook these entries too, in any order and
+    // in their own form. The game build is already verified in main, so an entry we
+    // do not recognise is logged and chained through Forge anyway; we never switch
+    // paging off over another plugin's hook.
     let site=base+0x3de4f8;
-    let words=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
-    if !crate::menu_input::valid_entry(words,site){return false}
+    let words:[u32;4]=core::array::from_fn(|i|unsafe{read(site+i as u32*4)});
+    if !crate::menu_input::valid_entry(words,site){
+        crate::log_info!("[better-skillinfo] input entry already patched ({:08X} {:08X} {:08X} {:08X}); chaining through Forge",words[0],words[1],words[2],words[3]);
+    }
     let camera_site=base+0x3de4b0;
-    let camera_words=core::array::from_fn(|i|unsafe{read(camera_site+i as u32*4)});
-    if !crate::menu_input::valid_camera_entry(camera_words,camera_site){return false}
+    let camera_words:[u32;4]=core::array::from_fn(|i|unsafe{read(camera_site+i as u32*4)});
     unsafe{
         CAMERA_LITERAL=read(base+0x3de4f0);
         CAMERA_RESUME=camera_site+8;
@@ -164,7 +169,13 @@ pub fn install(base:u32)->bool{
     );
     CAMERA_FORGE_ORIGINAL.store(forge_original as u32,Ordering::Release);
     forge::install_hook!(base,menu_translate);
-    forge::install_hook!(base,camera_translate);
+    // The camera hook replays the original prologue unless Forge calls the original
+    // (Recomp, or an entry already chained): only an unknown native prologue is skipped.
+    if crate::menu_input::valid_camera_entry(camera_words,camera_site)||forge_original{
+        forge::install_hook!(base,camera_translate);
+    }else{
+        forge::log::prelude::warn!("[better-skillinfo] camera entry unrecognised ({:08X} {:08X}); preview camera keeps its input",camera_words[0],camera_words[1]);
+    }
     INSTALLED.store(true,Ordering::Release);
     refresh_pending(base)
 }

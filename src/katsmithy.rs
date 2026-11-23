@@ -15,6 +15,8 @@ static INITIAL1:AtomicU32=AtomicU32::new(0);
 static DATA:AtomicU32=AtomicU32::new(0);
 static DATA_END:AtomicU32=AtomicU32::new(0);
 static LIST:AtomicU32=AtomicU32::new(0);
+// Index into katsmithy_model::LAYOUTS of the cached list.
+static LAYOUT:AtomicU32=AtomicU32::new(0);
 static SEARCHED:AtomicU32=AtomicU32::new(0);
 static SEARCH_FAILED:AtomicBool=AtomicBool::new(false);
 const ARMOR:&[u8]=include_bytes!("../assets/armor-skills.bin");
@@ -144,23 +146,25 @@ pub fn update(base:u32){
  ACTIVE.store(true,Ordering::Release);
  crate::log_info!("[better-skillinfo] KatSmithy observer linked after its initialization");
 }
-fn span(at:u32)->Option<&'static [u8]>{
+fn span(l:&crate::katsmithy_model::Layout,at:u32)->Option<&'static [u8]>{
  let (data,end)=(DATA.load(Ordering::Acquire),DATA_END.load(Ordering::Acquire));
- let size=crate::katsmithy_model::SPAN as u32;
+ let size=l.span as u32;
  (at>=data&&at.checked_add(size).is_some_and(|e|e<=end)).then(||unsafe{core::slice::from_raw_parts(at as *const u8,size as usize)})
 }
-/// KatSmithy's current selection. The list address is cached; the known builds'
-/// offsets are tried for free, and an unknown build gets a full search of its data
-/// segment, at most once every ~10 s while its armor forge is open.
+/// KatSmithy's current selection. The list address and its layout are cached; the
+/// known builds' offsets are tried for free, and an unknown build gets a full search
+/// of its data segment per layout, at most once every ~10 s while its armor forge is open.
 fn selection(module:u32,frame:u32)->Option<crate::katsmithy_model::Cursor>{
  use crate::katsmithy_model as m;
  // Once found, the list stays put for the session: a momentarily empty list
  // (rebuilt on a rank change) must not send the search to another table.
  let cached=LIST.load(Ordering::Acquire);
- if cached!=0{return span(cached).and_then(m::cursor)}
- for offset in m::KNOWN{
-  let at=module+offset;
-  if let Some(b)=span(at){if m::plausible(b).is_some(){LIST.store(at,Ordering::Release);return m::cursor(b)}}
+ if cached!=0{let l=&m::LAYOUTS[LAYOUT.load(Ordering::Acquire) as usize];return span(l,cached).and_then(|b|m::cursor(l,b))}
+ for (n,l) in m::LAYOUTS.iter().enumerate(){
+  for offset in l.known{
+   let at=module+offset;
+   if let Some(b)=span(l,at){if m::plausible(l,b).is_some(){LAYOUT.store(n as u32,Ordering::Release);LIST.store(at,Ordering::Release);return m::cursor(l,b)}}
+  }
  }
  let last=SEARCHED.load(Ordering::Acquire);
  if last!=0&&frame.wrapping_sub(last)<600{return None}
@@ -168,11 +172,15 @@ fn selection(module:u32,frame:u32)->Option<crate::katsmithy_model::Cursor>{
  let (data,end)=(DATA.load(Ordering::Acquire),DATA_END.load(Ordering::Acquire));
  if data==0||end<=data{return None}
  let bytes=unsafe{core::slice::from_raw_parts(data as *const u8,(end-data) as usize)};
- match m::find(bytes){
-  Some(at)=>{let at=data+at as u32;LIST.store(at,Ordering::Release);SEARCH_FAILED.store(false,Ordering::Release);
-   crate::log_info!("[better-skillinfo] KatSmithy armor list found at +{:X}",at-module);span(at).and_then(m::cursor)}
-  None=>{if !SEARCH_FAILED.swap(true,Ordering::AcqRel){forge::log::prelude::error!("[better-skillinfo] KatSmithy armor list not found in this KatSmithy build");}None}
+ for (n,l) in m::LAYOUTS.iter().enumerate(){
+  if let Some(at)=m::find(l,bytes){
+   let at=data+at as u32;LAYOUT.store(n as u32,Ordering::Release);LIST.store(at,Ordering::Release);SEARCH_FAILED.store(false,Ordering::Release);
+   crate::log_info!("[better-skillinfo] KatSmithy armor list found at +{:X} (capacity {:X})",at-module,l.capacity);
+   return span(l,at).and_then(|b|m::cursor(l,b))
+  }
  }
+ if !SEARCH_FAILED.swap(true,Ordering::AcqRel){forge::log::prelude::warn!("[better-skillinfo] KatSmithy armor list not found yet; searching again while its armor forge is open");}
+ None
 }
 /// Outer None means a different screen; Some(None) hides the native fallback
 /// while KatSmithy is showing the ordinary armor status instead of skills.
